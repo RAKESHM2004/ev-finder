@@ -18,10 +18,11 @@ const DEVELOPMENT_API_URL = 'http://localhost:5000/api';
 // DETECT ENVIRONMENT
 // ============================================
 
-// Check if we're running on GitHub Pages or local
+// Check if we're running on GitHub Pages or production
 const isProduction = window.location.hostname === 'RAKESHM2004.github.io' || 
                      window.location.hostname === 'www.rakeshm2004.github.io' ||
-                     window.location.hostname.includes('onrender.com');
+                     window.location.hostname.includes('onrender.com') ||
+                     window.location.hostname !== 'localhost';
 
 // Set API URL based on environment
 const API_BASE_URL = isProduction ? PRODUCTION_API_URL : DEVELOPMENT_API_URL;
@@ -106,6 +107,15 @@ async function checkBackendHealth() {
     }
 }
 
+// Get auth headers with token
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    };
+}
+
 // Log configuration on load
 console.log('========================================');
 console.log('🚀 EV Finder Configuration Loaded');
@@ -113,10 +123,12 @@ console.log('========================================');
 console.log('📡 Environment:', APP_CONFIG.app.environment);
 console.log('🔗 API Base URL:', API_BASE_URL);
 console.log('🌐 Site URL:', SITE_URL);
+console.log('📱 Hostname:', window.location.hostname);
 console.log('========================================');
 
-// Export for use in other files
-// (Available globally since this is loaded as a script)
+// ============================================
+// EXPORTS (Global variables)
+// ============================================
 
 // Make config available globally
 window.EV_CONFIG = {
@@ -124,5 +136,9 @@ window.EV_CONFIG = {
     SITE_URL,
     APP_CONFIG,
     getApiUrl,
-    checkBackendHealth
+    checkBackendHealth,
+    getAuthHeaders
 };
+
+// Also make API_BASE_URL directly available globally
+window.API_BASE_URL = API_BASE_URL;
