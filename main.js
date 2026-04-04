@@ -1,5 +1,7 @@
-// API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// frontend/js/main.js
+// Main JavaScript for EV Finder
+
+// API_BASE_URL is now defined in config.js
 
 // State management
 let backendConnected = false;
@@ -168,6 +170,7 @@ async function checkAuth() {
         let dashboardLink = 'user-request-dashboard.html';
         if (user.role === 'admin') dashboardLink = 'admin-dashboard.html';
         if (user.role === 'mechanic') dashboardLink = 'mechanic-dashboard.html';
+        if (user.role === 'station_owner') dashboardLink = 'station-owner-dashboard.html';
         
         authButtons.innerHTML = `
             <a href="${dashboardLink}" class="px-5 py-2 text-green-600 font-semibold hover:bg-green-50 rounded-lg transition flex items-center gap-2">
@@ -397,7 +400,7 @@ function addDemoMarkers(map) {
     });
 }
 
-// Load popular stations with location info
+// Load popular stations
 async function loadPopularStations() {
     const container = document.getElementById('popularStations');
     if (!container) return;
