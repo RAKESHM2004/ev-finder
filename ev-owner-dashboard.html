@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Owner Dashboard - EV Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: white;
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .amenity-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            color: #374151;
+            transition: all 0.3s;
+        }
+
+        .amenity-tag:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .amenity-tag i {
+            color: #10b981;
+        }
+
+        .amenity-tag:hover i {
+            color: white;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-open {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-closed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-maintenance {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .booking-slot {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .booking-slot:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .booking-slot.selected {
+            border-color: #10b981;
+            background: #dcfce7;
+        }
+
+        .booking-slot.booked {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .time-slot:hover {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .time-slot.selected {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .time-slot.disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .mechanic-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            transition: all 0.3s;
+        }
+
+        .mechanic-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .mechanic-avatar {
+            width: 48px;
+            height: 48px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nav-link {
+            color: #4b5563;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: #059669;
+            background: #f3f4f6;
+        }
+
+        .nav-link.active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .booking-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .booking-modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .star-rating {
+            color: #fbbf24;
+        }
+
+        .distance-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">⚡</span>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EV Finder</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="stations.html" class="nav-link">Stations</a>
+                    <a href="mechanics.html" class="nav-link">Mechanics</a>
+                    <a href="user-request-dashboard.html" class="nav-link active">Dashboard</a>
+                    <div class="flex items-center space-x-3" id="authButtons">
+                        <!-- Auth buttons will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2" id="welcomeMessage">Welcome back, <span id="userName">User</span>!</h1>
+                    <p class="text-green-100">Manage your EV journey, find stations, and book services</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <i class="fas fa-user text-4xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Bookings</p>
+                        <p class="text-3xl font-bold" id="totalBookings">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Upcoming</p>
+                        <p class="text-3xl font-bold" id="upcomingBookings">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Favorite Stations</p>
+                        <p class="text-3xl font-bold" id="favoriteStations">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-heart text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Spent</p>
+                        <p class="text-3xl font-bold" id="totalSpent">$0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Map & Nearby Stations -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Map Section -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-map-marked-alt text-green-600 mr-2"></i>
+                        Find Stations Near You
+                    </h2>
+                    <div id="map"></div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="centerOnUser()" class="text-sm text-green-600 hover:text-green-700">
+                            <i class="fas fa-location-arrow mr-1"></i>Center on my location
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nearby Stations with Amenities -->
+                <div class="dashboard-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-charging-station text-green-600 mr-2"></i>
+                            Nearby Stations
+                        </h2>
+                        <div class="flex gap-2">
+                            <select id="stationFilter" class="text-sm border rounded-lg px-3 py-2">
+                                <option value="all">All Stations</option>
+                                <option value="open">Open Now</option>
+                                <option value="24h">24/7</option>
+                                <option value="nearby">Nearest First</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="nearbyStations" class="space-y-4">
+                        <!-- Stations will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                            <p>Loading nearby stations...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Bookings & Mechanics -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Quick Booking -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-bolt text-green-600 mr-2"></i>
+                        Quick Booking
+                    </h2>
+                    <div class="space-y-3">
+                        <select id="quickStation" class="w-full p-3 border rounded-lg">
+                            <option value="">Select Station</option>
+                        </select>
+                        <input type="date" id="bookingDate" class="w-full p-3 border rounded-lg" min="">
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="selectTime('09:00')" class="time-slot">09:00</button>
+                            <button onclick="selectTime('10:00')" class="time-slot">10:00</button>
+                            <button onclick="selectTime('11:00')" class="time-slot">11:00</button>
+                            <button onclick="selectTime('14:00')" class="time-slot">14:00</button>
+                            <button onclick="selectTime('15:00')" class="time-slot">15:00</button>
+                            <button onclick="selectTime('16:00')" class="time-slot">16:00</button>
+                        </div>
+                        <button onclick="bookNow()" class="w-full btn-primary py-3">
+                            <i class="fas fa-calendar-check mr-2"></i>Book Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- My Bookings -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-calendar-alt text-green-600 mr-2"></i>
+                        My Bookings
+                    </h2>
+                    <div id="myBookings" class="space-y-3">
+                        <!-- Bookings will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <p>No upcoming bookings</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nearby Mechanics -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-tools text-green-600 mr-2"></i>
+                        Nearby Mechanics
+                    </h2>
+                    <div id="nearbyMechanics" class="space-y-3">
+                        <!-- Mechanics will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p>Loading mechanics...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Favorite Stations -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-star text-yellow-500 mr-2"></i>
+                        Favorite Stations
+                    </h2>
+                    <div id="favoriteStationsList" class="space-y-3">
+                        <!-- Favorites will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <p>No favorites yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="booking-modal hidden">
+        <div class="booking-modal-content">
+            <h3 class="text-2xl font-bold mb-4">Confirm Booking</h3>
+            <div id="bookingDetails" class="space-y-4 mb-6">
+                <!-- Details will be filled dynamically -->
+            </div>
+            <div class="flex gap-4">
+                <button onclick="confirmBooking()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                    Confirm Booking
+                </button>
+                <button onclick="closeBookingModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Station Details Modal -->
+    <div id="stationModal" class="booking-modal hidden">
+        <div class="booking-modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold" id="modalStationName">Station Details</h3>
+                <button onclick="closeStationModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="stationDetails" class="space-y-4">
+                <!-- Details will be filled dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 px-4 mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 EV Finder. All rights reserved. Powered by clean energy.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let map, userMarker;
+        let selectedStation = null;
+        let selectedTime = null;
+        let selectedDate = null;
+        let userLocation = null;
+        
+        // Sample data for demonstration
+        const sampleStations = [
+            {
+                id: 1,
+                name: "Downtown EV Hub",
+                address: "123 Main St, Chennai",
+                location: { lat: 13.0827, lng: 80.2707 },
+                status: "open",
+                hours: "06:00 - 22:00",
+                amenities: ["Restrooms", "Cafe", "WiFi", "Shopping Mart"],
+                chargers: ["CCS (50kW)", "CHAdeMO (50kW)", "Type 2 (22kW)"],
+                price: "₹15/kWh",
+                rating: 4.8,
+                distance: "0.5 km",
+                slots: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
+            },
+            {
+                id: 2,
+                name: "Phoenix Marketcity",
+                address: "Velachery, Chennai",
+                location: { lat: 12.9924, lng: 80.2207 },
+                status: "open",
+                hours: "24/7",
+                amenities: ["Restrooms", "Restaurant", "WiFi", "Shopping Mall"],
+                chargers: ["Tesla Supercharger", "CCS (150kW)"],
+                price: "₹20/kWh",
+                rating: 4.9,
+                distance: "2.3 km",
+                slots: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
+            },
+            {
+                id: 3,
+                name: "IT Corridor Station",
+                address: "OMR, Chennai",
+                location: { lat: 12.8919, lng: 80.2497 },
+                status: "maintenance",
+                hours: "08:00 - 20:00",
+                amenities: ["Restrooms", "Cafe", "WiFi"],
+                chargers: ["Type 2 (22kW)", "CCS (50kW)"],
+                price: "₹12/kWh",
+                rating: 4.5,
+                distance: "3.1 km",
+                slots: ["10:00", "11:00", "15:00", "16:00"]
+            }
+        ];
+
+        const sampleMechanics = [
+            {
+                id: 1,
+                name: "Rajesh Kumar",
+                shop: "Rajesh EV Service",
+                location: { lat: 13.0800, lng: 80.2750 },
+                distance: "0.8 km",
+                rating: 4.7,
+                services: ["General Service", "Battery Check", "Emergency"],
+                available: true
+            },
+            {
+                id: 2,
+                name: "Priya Sharma",
+                shop: "Green Wheel Care",
+                location: { lat: 12.9900, lng: 80.2250 },
+                distance: "2.1 km",
+                rating: 4.9,
+                services: ["Battery Service", "Software Updates"],
+                available: true
+            }
+        ];
+
+        const sampleBookings = [
+            {
+                id: 1,
+                station: "Downtown EV Hub",
+                date: "2024-03-10",
+                time: "10:00",
+                status: "upcoming"
+            }
+        ];
+
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Update welcome message
+        document.getElementById('userName').textContent = user.name || 'User';
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([13.0827, 80.2707], 12);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setView([userLocation.lat, userLocation.lng], 13);
+                        addUserMarker(userLocation.lat, userLocation.lng);
+                        loadNearbyStations();
+                    },
+                    (error) => {
+                        console.log('Using default location');
+                        loadNearbyStations();
+                    }
+                );
+            } else {
+                loadNearbyStations();
+            }
+        }
+
+        // Add user marker
+        function addUserMarker(lat, lng) {
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                userMarker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: '<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                }).addTo(map).bindPopup('You are here');
+            }
+        }
+
+        // Center on user location
+        function centerOnUser() {
+            if (userLocation) {
+                map.setView([userLocation.lat, userLocation.lng], 13);
+            } else if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setView([userLocation.lat, userLocation.lng], 13);
+                        addUserMarker(userLocation.lat, userLocation.lng);
+                    }
+                );
+            }
+        }
+
+        // Load nearby stations
+        function loadNearbyStations() {
+            const container = document.getElementById('nearbyStations');
+            const filter = document.getElementById('stationFilter').value;
+            
+            // Simulate loading
+            setTimeout(() => {
+                let filteredStations = [...sampleStations];
+                
+                if (filter === 'open') {
+                    filteredStations = filteredStations.filter(s => s.status === 'open');
+                } else if (filter === '24h') {
+                    filteredStations = filteredStations.filter(s => s.hours === '24/7');
+                }
+                
+                container.innerHTML = filteredStations.map(station => `
+                    <div class="border rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="showStationDetails(${station.id})">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-lg">${station.name}</h3>
+                                <p class="text-sm text-gray-600">${station.address}</p>
+                            </div>
+                            <span class="status-badge ${station.status === 'open' ? 'status-open' : station.status === 'maintenance' ? 'status-maintenance' : 'status-closed'}">
+                                ${station.status === 'open' ? '● Open' : station.status === 'maintenance' ? '⚠ Maintenance' : '● Closed'}
+                            </span>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            ${station.amenities.slice(0, 3).map(a => `
+                                <span class="amenity-tag text-xs">
+                                    <i class="fas ${a === 'Restrooms' ? 'fa-restroom' : a === 'Cafe' ? 'fa-mug-hot' : a === 'WiFi' ? 'fa-wifi' : a === 'Shopping Mart' ? 'fa-store' : a === 'Restaurant' ? 'fa-utensils' : 'fa-check'}"></i>
+                                    ${a}
+                                </span>
+                            `).join('')}
+                            ${station.amenities.length > 3 ? `<span class="text-xs text-gray-500">+${station.amenities.length - 3}</span>` : ''}
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-4">
+                                <span class="flex items-center">
+                                    <i class="fas fa-clock text-green-600 mr-1"></i>
+                                    ${station.hours}
+                                </span>
+                                <span class="distance-badge">
+                                    <i class="fas fa-location-arrow mr-1"></i>
+                                    ${station.distance}
+                                </span>
+                            </div>
+                            <span class="star-rating">
+                                <i class="fas fa-star"></i> ${station.rating}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update quick booking dropdown
+                const stationSelect = document.getElementById('quickStation');
+                stationSelect.innerHTML = '<option value="">Select Station</option>' + 
+                    filteredStations.map(s => `<option value="${s.id}">${s.name} (${s.distance})</option>`).join('');
+            }, 1000);
+        }
+
+        // Show station details
+        function showStationDetails(id) {
+            const station = sampleStations.find(s => s.id === id);
+            if (!station) return;
+            
+            const modal = document.getElementById('stationModal');
+            const details = document.getElementById('stationDetails');
+            
+            details.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xl font-bold">${station.name}</h4>
+                        <span class="star-rating text-lg">
+                            <i class="fas fa-star"></i> ${station.rating}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-600">
+                        <i class="fas fa-map-pin text-green-600 mr-2"></i>
+                        ${station.address}
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-gray-500">Status</p>
+                            <p class="font-semibold ${station.status === 'open' ? 'text-green-600' : station.status === 'maintenance' ? 'text-yellow-600' : 'text-red-600'}">
+                                ${station.status === 'open' ? 'Open' : station.status === 'maintenance' ? 'Under Maintenance' : 'Closed'}
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-gray-500">Hours</p>
+                            <p class="font-semibold">${station.hours}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-2">Available Chargers</h5>
+                        <div class="flex flex-wrap gap-2">
+                            ${station.chargers.map(c => `
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">${c}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-2">Amenities</h5>
+                        <div class="flex flex-wrap gap-2">
+                            ${station.amenities.map(a => `
+                                <span class="amenity-tag">
+                                    <i class="fas ${a === 'Restrooms' ? 'fa-restroom' : a === 'Cafe' ? 'fa-mug-hot' : a === 'WiFi' ? 'fa-wifi' : a === 'Shopping Mart' ? 'fa-store' : a === 'Restaurant' ? 'fa-utensils' : 'fa-check'}"></i>
+                                    ${a}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-2">Pricing</h5>
+                        <p class="text-lg font-bold text-green-600">${station.price}</p>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-2">Available Slots Today</h5>
+                        <div class="grid grid-cols-3 gap-2">
+                            ${station.slots.map(time => `
+                                <button onclick="selectTimeForBooking('${time}', ${station.id})" class="time-slot text-sm p-2">
+                                    ${time}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-4">
+                        <button onclick="bookStation(${station.id})" class="flex-1 btn-primary py-3">
+                            <i class="fas fa-calendar-check mr-2"></i>Book Now
+                        </button>
+                        <button onclick="addToFavorites(${station.id})" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200">
+                            <i class="fas fa-heart mr-2"></i>Save
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Close station modal
+        function closeStationModal() {
+            document.getElementById('stationModal').classList.add('hidden');
+        }
+
+        // Select time for booking
+        function selectTime(time) {
+            selectedTime = time;
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+                if (slot.textContent.trim() === time) {
+                    slot.classList.add('selected');
+                }
+            });
+        }
+
+        // Select time from station details
+        function selectTimeForBooking(time, stationId) {
+            selectedTime = time;
+            selectedStation = sampleStations.find(s => s.id === stationId);
+            closeStationModal();
+            showBookingModal();
+        }
+
+        // Book station
+        function bookStation(id) {
+            selectedStation = sampleStations.find(s => s.id === id);
+            closeStationModal();
+            showBookingModal();
+        }
+
+        // Show booking modal
+        function showBookingModal() {
+            if (!selectedStation) return;
+            
+            const modal = document.getElementById('bookingModal');
+            const details = document.getElementById('bookingDetails');
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookingDate').min = today;
+            
+            details.innerHTML = `
+                <div class="border-b pb-4">
+                    <h4 class="font-bold text-lg">${selectedStation.name}</h4>
+                    <p class="text-gray-600">${selectedStation.address}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Select Date</label>
+                    <input type="date" id="modalBookingDate" class="w-full p-3 border rounded-lg" min="${today}" value="${today}">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Available Time Slots</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        ${selectedStation.slots.map(time => `
+                            <button onclick="selectModalTime('${time}')" class="time-slot text-sm p-2 ${selectedTime === time ? 'selected' : ''}">
+                                ${time}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Price: <span class="font-bold text-green-600">${selectedStation.price}</span></p>
+                    <p class="text-sm text-gray-600">Estimated Duration: 1 hour</p>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Select time in modal
+        function selectModalTime(time) {
+            selectedTime = time;
+            document.querySelectorAll('#bookingModal .time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+                if (slot.textContent.trim() === time) {
+                    slot.classList.add('selected');
+                }
+            });
+        }
+
+        // Close booking modal
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+        }
+
+        // Confirm booking
+        function confirmBooking() {
+            const date = document.getElementById('modalBookingDate')?.value || document.getElementById('bookingDate')?.value;
+            
+            if (!selectedStation || !date || !selectedTime) {
+                alert('Please select station, date and time');
+                return;
+            }
+            
+            showToast('Booking confirmed! Check your email for details.');
+            closeBookingModal();
+            
+            // Update bookings list
+            loadMyBookings();
+        }
+
+        // Book now from quick booking
+        function bookNow() {
+            const stationId = document.getElementById('quickStation').value;
+            const date = document.getElementById('bookingDate').value;
+            
+            if (!stationId || !date || !selectedTime) {
+                alert('Please select station, date and time');
+                return;
+            }
+            
+            selectedStation = sampleStations.find(s => s.id == stationId);
+            showBookingModal();
+        }
+
+        // Add to favorites
+        function addToFavorites(id) {
+            showToast('Station added to favorites!');
+            loadFavorites();
+        }
+
+        // Load my bookings
+        function loadMyBookings() {
+            const container = document.getElementById('myBookings');
+            
+            if (sampleBookings.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500"><p>No upcoming bookings</p></div>';
+                return;
+            }
+            
+            container.innerHTML = sampleBookings.map(booking => `
+                <div class="border rounded-lg p-3">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold">${booking.station}</h4>
+                        <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Upcoming</span>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-calendar mr-1"></i> ${booking.date}
+                        <i class="fas fa-clock ml-2 mr-1"></i> ${booking.time}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        // Load favorites
+        function loadFavorites() {
+            const container = document.getElementById('favoriteStationsList');
+            
+            if (sampleStations.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500"><p>No favorites yet</p></div>';
+                return;
+            }
+            
+            container.innerHTML = sampleStations.slice(0, 2).map(station => `
+                <div class="border rounded-lg p-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold">${station.name}</h4>
+                            <p class="text-xs text-gray-500">${station.distance}</p>
+                        </div>
+                        <button onclick="removeFromFavorites(${station.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Remove from favorites
+        function removeFromFavorites(id) {
+            showToast('Removed from favorites');
+            loadFavorites();
+        }
+
+        // Load nearby mechanics
+        function loadNearbyMechanics() {
+            const container = document.getElementById('nearbyMechanics');
+            
+            setTimeout(() => {
+                container.innerHTML = sampleMechanics.map(mech => `
+                    <div class="mechanic-card">
+                        <div class="flex items-start gap-3">
+                            <div class="mechanic-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold">${mech.name}</h4>
+                                <p class="text-sm text-gray-600">${mech.shop}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="distance-badge text-xs">
+                                        <i class="fas fa-location-arrow"></i> ${mech.distance}
+                                    </span>
+                                    <span class="star-rating text-xs">
+                                        <i class="fas fa-star"></i> ${mech.rating}
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    ${mech.services.slice(0, 2).map(s => `
+                                        <span class="text-xs bg-gray-100 px-2 py-1 rounded">${s}</span>
+                                    `).join('')}
+                                    ${mech.services.length > 2 ? `<span class="text-xs text-gray-500">+${mech.services.length - 2}</span>` : ''}
+                                </div>
+                                <button class="mt-2 w-full bg-green-600 text-white text-sm py-2 rounded-lg hover:bg-green-700">
+                                    Contact
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }, 1000);
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification`;
+            toast.style.borderLeftColor = type === 'success' ? '#10b981' : '#ef4444';
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Update auth buttons
+        function updateAuthButtons() {
+            const authButtons = document.getElementById('authButtons');
+            if (authButtons) {
+                authButtons.innerHTML = `
+                    <span class="px-5 py-2 text-green-600 font-semibold">
+                        <i class="fas fa-user mr-2"></i>${user.name || 'User'}
+                    </span>
+                    <button onclick="logout()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-5 py-2 rounded-lg font-semibold transition">
+                        Logout
+                    </button>
+                `;
+            }
+        }
+
+        // Logout
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        };
+
+        // Filter change listener
+        document.getElementById('stationFilter').addEventListener('change', loadNearbyStations);
+
+        // Set today's date as min for booking
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookingDate').min = today;
+            document.getElementById('bookingDate').value = today;
+            
+            initMap();
+            loadNearbyStations();
+            loadNearbyMechanics();
+            loadMyBookings();
+            loadFavorites();
+            updateAuthButtons();
+            
+            // Update stats
+            document.getElementById('totalBookings').textContent = '12';
+            document.getElementById('upcomingBookings').textContent = '3';
+            document.getElementById('favoriteStations').textContent = '4';
+            document.getElementById('totalSpent').textContent = '$156.50';
+        });
+    </script>
+    <script src="js/ai-features.js"></script>
+</body>
+</html>

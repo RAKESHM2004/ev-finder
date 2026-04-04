@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - EV Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .request-card:hover {
+            border-color: #059669;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .request-card.station {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .request-card.mechanic {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .request-card.pending {
+            background: #fff9e6;
+        }
+
+        .request-card.accepted {
+            background: #e6f7e6;
+        }
+
+        .request-card.in-progress {
+            background: #e6f0ff;
+        }
+
+        .request-card.completed {
+            background: #f0f0f0;
+            opacity: 0.8;
+        }
+
+        .request-card.cancelled {
+            background: #ffe6e6;
+            opacity: 0.7;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-accepted {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-in-progress {
+            background: #cffafe;
+            color: #0891b2;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .service-tag {
+            background: #e5e7eb;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin: 0.125rem;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-notification.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .nav-link {
+            color: #4b5563;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: #059669;
+            background: #f3f4f6;
+        }
+
+        .nav-link.active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: #059669;
+            background: #f9fafb;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            border: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        .filter-tab.active {
+            background: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        .filter-tab:hover {
+            background: #e5e7eb;
+        }
+
+        .filter-tab.active:hover {
+            background: #047857;
+        }
+
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+
+        .time-slot:hover:not(.booked):not(.unavailable) {
+            background: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        .time-slot.selected {
+            background: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        .time-slot.booked {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        .request-type-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e5e7eb;
+        }
+
+        .toggle-btn.active {
+            background: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        .toggle-btn.station.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .toggle-btn.mechanic.active {
+            background: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        .provider-response {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 1.5rem;
+            padding-bottom: 1rem;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -0.45rem;
+            top: 0;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .timeline-item.pending::before { background: #f59e0b; }
+        .timeline-item.accepted::before { background: #3b82f6; }
+        .timeline-item.in-progress::before { background: #06b6d4; }
+        .timeline-item.completed::before { background: #10b981; }
+        .timeline-item.cancelled::before { background: #ef4444; }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 1.5rem;
+        }
+
+        .rating-stars i {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rating-stars i:hover {
+            transform: scale(1.2);
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .debug-panel.visible {
+            display: block;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .debug-title {
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .debug-close {
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .debug-close:hover {
+            color: #ef4444;
+        }
+
+        .debug-log {
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .debug-log-entry.error {
+            color: #ef4444;
+        }
+
+        .debug-log-entry.success {
+            color: #10b981;
+        }
+
+        .debug-log-entry.info {
+            color: #3b82f6;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .debug-toggle:hover {
+            background: #059669;
+        }
+
+        /* Status Guide Styles */
+        .status-guide-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+        }
+
+        .status-guide-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-guide-title i {
+            color: #10b981;
+        }
+
+        .status-guide-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem 2rem;
+        }
+
+        .status-guide-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .status-guide-dot {
+            width: 0.875rem;
+            height: 0.875rem;
+            border-radius: 50%;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .status-guide-dot.pending { background: #f59e0b; }
+        .status-guide-dot.accepted { background: #3b82f6; }
+        .status-guide-dot.in-progress { background: #06b6d4; }
+        .status-guide-dot.completed { background: #10b981; }
+        .status-guide-dot.cancelled { background: #ef4444; }
+
+        .status-guide-content {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.4;
+        }
+
+        .status-guide-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1f2937;
+            margin-bottom: 0.1rem;
+        }
+
+        .status-guide-description {
+            color: #6b7280;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        @media (max-width: 640px) {
+            .status-guide-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">⚡</span>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EV Finder</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="stations.html" class="nav-link">Stations</a>
+                    <a href="mechanics.html" class="nav-link">Mechanics</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                    <a href="user-request-dashboard.html" class="nav-link active">My Dashboard</a>
+                    <div class="flex items-center space-x-3" id="authButtons"></div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-gray-700 focus:outline-none" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 py-4 px-4">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 hover:text-green-600 py-2">Home</a>
+                <a href="stations.html" class="text-gray-700 hover:text-green-600 py-2">Stations</a>
+                <a href="mechanics.html" class="text-gray-700 hover:text-green-600 py-2">Mechanics</a>
+                <a href="#contact" class="text-gray-700 hover:text-green-600 py-2">Contact</a>
+                <a href="user-request-dashboard.html" class="text-green-600 font-semibold py-2">My Dashboard</a>
+                <div id="mobileAuthButtons"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Welcome back, <span id="userName">User</span>!</h1>
+                    <p class="text-green-100">Book charging slots at stations or request mechanic service for your EV</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <i class="fas fa-user text-4xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Requests</p>
+                        <p class="text-3xl font-bold" id="totalRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Pending</p>
+                        <p class="text-3xl font-bold" id="pendingRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">In Progress</p>
+                        <p class="text-3xl font-bold" id="inProgressRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cog fa-spin text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Completed</p>
+                        <p class="text-3xl font-bold" id="completedRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Search Section -->
+        <div class="dashboard-card mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                Find Stations by Location
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                    <select id="countryFilter" class="w-full p-2 border rounded-lg" onchange="updateStateDropdown(); filterStationsByLocation();">
+                        <option value="">All Countries</option>
+                        <option value="India">India</option>
+                        <option value="USA">USA</option>
+                        <option value="UK">UK</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="Japan">Japan</option>
+                        <option value="China">China</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">State / Province</label>
+                    <select id="stateFilter" class="w-full p-2 border rounded-lg" onchange="updateCityDropdown(); filterStationsByLocation();">
+                        <option value="">All States</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">City / District</label>
+                    <select id="cityFilter" class="w-full p-2 border rounded-lg" onchange="filterStationsByLocation();">
+                        <option value="">All Cities</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end gap-2">
+                    <button onclick="searchByLocation()" class="flex-1 btn-primary py-2">
+                        <i class="fas fa-search mr-2"></i>Search Stations
+                    </button>
+                    <button onclick="resetLocationFilters()" class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="locationStats" class="mt-3 text-sm text-gray-500 hidden">
+                <i class="fas fa-info-circle mr-1"></i>
+                <span id="stationCountDisplay">0</span> stations found in selected location
+            </div>
+        </div>
+
+        <!-- Request Type Toggle -->
+        <div class="request-type-toggle mb-6">
+            <button class="toggle-btn station active" onclick="showRequestType('station')">
+                <i class="fas fa-charging-station mr-2"></i>Book Station Slot
+            </button>
+            <button class="toggle-btn mechanic" onclick="showRequestType('mechanic')">
+                <i class="fas fa-tools mr-2"></i>Request Mechanic
+            </button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Request Form -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Station Request Form -->
+                <div id="stationRequestForm" class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center text-blue-600">
+                        <i class="fas fa-charging-station mr-2"></i>
+                        Book Charging Slot
+                    </h2>
+                    
+                    <form id="stationForm" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Select Station</label>
+                            <select id="stationSelect" class="w-full p-3 border rounded-lg" required onchange="updateStationDetails()">
+                                <option value="">Loading stations...</option>
+                            </select>
+                            <p id="stationLocationHint" class="text-xs text-gray-500 mt-1 hidden">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span></span>
+                            </p>
+                        </div>
+
+                        <div id="stationDetails" class="bg-gray-50 p-3 rounded-lg text-sm hidden">
+                            <!-- Station details will show here -->
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Charger Type</label>
+                            <select id="chargerType" class="w-full p-3 border rounded-lg" required onchange="updatePrice()">
+                                <option value="">Select charger type</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Select Date</label>
+                            <input type="date" id="stationDate" class="w-full p-3 border rounded-lg" required onchange="updateTimeSlots()">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Available Time Slots</label>
+                            <div id="stationTimeSlots" class="grid grid-cols-3 gap-2">
+                                <p class="text-gray-500 text-sm col-span-3">Select a station and date first</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Your Vehicle</label>
+                            <select id="vehicleSelect" class="w-full p-3 border rounded-lg" required>
+                                <option value="">Select vehicle</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Special Requests (Optional)</label>
+                            <textarea id="stationNotes" class="w-full p-3 border rounded-lg" rows="2" placeholder="Any special requirements..."></textarea>
+                        </div>
+
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">Estimated Price:</span>
+                                <span class="text-xl font-bold text-blue-600" id="estimatedPrice">$0</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full btn-primary py-3" id="submitStationBtn">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit Booking Request
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Mechanic Request Form -->
+                <div id="mechanicRequestForm" class="dashboard-card hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center text-yellow-600">
+                        <i class="fas fa-tools mr-2"></i>
+                        Request Mechanic Service
+                    </h2>
+                    
+                    <form id="mechanicForm" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Select Mechanic</label>
+                            <select id="mechanicSelect" class="w-full p-3 border rounded-lg" required onchange="updateMechanicDetails()">
+                                <option value="">Loading mechanics...</option>
+                            </select>
+                        </div>
+
+                        <div id="mechanicDetails" class="bg-gray-50 p-3 rounded-lg text-sm hidden">
+                            <!-- Mechanic details will show here -->
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Service Type</label>
+                            <select id="serviceType" class="w-full p-3 border rounded-lg" required onchange="updateMechanicPrice()">
+                                <option value="">Select service</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Select Date</label>
+                            <input type="date" id="mechanicDate" class="w-full p-3 border rounded-lg" required onchange="updateMechanicTimeSlots()">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Available Time Slots</label>
+                            <div id="mechanicTimeSlots" class="grid grid-cols-3 gap-2">
+                                <p class="text-gray-500 text-sm col-span-3">Select a mechanic and date first</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Your Vehicle</label>
+                            <select id="mechanicVehicleSelect" class="w-full p-3 border rounded-lg" required>
+                                <option value="">Select vehicle</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Describe the Issue</label>
+                            <textarea id="mechanicNotes" class="w-full p-3 border rounded-lg" rows="3" placeholder="Please describe the problem you're facing..." required></textarea>
+                        </div>
+
+                        <div class="bg-yellow-50 p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">Service Price:</span>
+                                <span class="text-xl font-bold text-yellow-600" id="mechanicEstimatedPrice">$0</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full btn-primary py-3" id="submitMechanicBtn">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit Service Request
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-bolt text-green-600 mr-2"></i>
+                        Quick Actions
+                    </h2>
+                    <div class="space-y-3">
+                        <a href="stations.html" class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition text-center">
+                            <i class="fas fa-search mr-2"></i> Browse All Stations
+                        </a>
+                        <a href="mechanics.html" class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition text-center">
+                            <i class="fas fa-search mr-2"></i> Browse All Mechanics
+                        </a>
+                        <button onclick="showAddVehicle()" class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition text-center">
+                            <i class="fas fa-car mr-2"></i> Add New Vehicle
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - My Requests -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Filter Tabs -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button class="filter-tab active" onclick="filterRequests('all')">All Requests</button>
+                    <button class="filter-tab" onclick="filterRequests('pending')">⏳ Pending</button>
+                    <button class="filter-tab" onclick="filterRequests('accepted')">✅ Accepted</button>
+                    <button class="filter-tab" onclick="filterRequests('in-progress')">🔄 In Progress</button>
+                    <button class="filter-tab" onclick="filterRequests('completed')">✔️ Completed</button>
+                    <button class="filter-tab" onclick="filterRequests('cancelled')">❌ Cancelled</button>
+                </div>
+
+                <!-- My Requests List -->
+                <div class="dashboard-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-clipboard-list text-green-600 mr-2"></i>
+                            My Service Requests
+                        </h2>
+                        <span class="text-sm bg-green-100 text-green-600 px-3 py-1 rounded-full" id="requestsCount">0 total</span>
+                    </div>
+                    
+                    <div id="requestsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                        <!-- Requests will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="loading-spinner mx-auto"></div>
+                            <p class="mt-4">Loading your requests...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Request Status Guide -->
+                <div class="status-guide-container">
+                    <div class="status-guide-title">
+                        <i class="fas fa-info-circle"></i>
+                        Request Status Guide
+                    </div>
+                    
+                    <div class="status-guide-grid">
+                        <div class="status-guide-item">
+                            <div class="status-guide-dot pending"></div>
+                            <div class="status-guide-content">
+                                <span class="status-guide-label">Pending</span>
+                                <span class="status-guide-description">Waiting for provider response</span>
+                            </div>
+                        </div>
+                        <div class="status-guide-item">
+                            <div class="status-guide-dot in-progress"></div>
+                            <div class="status-guide-content">
+                                <span class="status-guide-label">In Progress</span>
+                                <span class="status-guide-description">Service is currently ongoing</span>
+                            </div>
+                        </div>
+                        <div class="status-guide-item">
+                            <div class="status-guide-dot cancelled"></div>
+                            <div class="status-guide-content">
+                                <span class="status-guide-label">Cancelled</span>
+                                <span class="status-guide-description">Request was cancelled</span>
+                            </div>
+                        </div>
+                        <div class="status-guide-item">
+                            <div class="status-guide-dot accepted"></div>
+                            <div class="status-guide-content">
+                                <span class="status-guide-label">Accepted</span>
+                                <span class="status-guide-description">Provider confirmed your request</span>
+                            </div>
+                        </div>
+                        <div class="status-guide-item">
+                            <div class="status-guide-dot completed"></div>
+                            <div class="status-guide-content">
+                                <span class="status-guide-label">Completed</span>
+                                <span class="status-guide-description">Service has been completed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div id="requestModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Request Details</h3>
+                <button onclick="closeRequestModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="requestDetailsContent" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Rate Your Experience</h3>
+            
+            <div class="space-y-6">
+                <div class="text-center">
+                    <p class="text-gray-600 mb-2">How was your service with <span id="providerName" class="font-semibold">Provider</span>?</p>
+                    <div class="rating-stars mb-4">
+                        <i class="far fa-star" onclick="setRating(1)"></i>
+                        <i class="far fa-star" onclick="setRating(2)"></i>
+                        <i class="far fa-star" onclick="setRating(3)"></i>
+                        <i class="far fa-star" onclick="setRating(4)"></i>
+                        <i class="far fa-star" onclick="setRating(5)"></i>
+                    </div>
+                    <p class="text-sm text-gray-500">Selected: <span id="selectedRating">0</span>/5</p>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Your Review (Optional)</label>
+                    <textarea id="reviewText" rows="4" class="w-full p-3 border rounded-lg" placeholder="Share your experience..."></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="submitRating()" class="flex-1 btn-primary">Submit Rating</button>
+                    <button onclick="closeRatingModal()" class="flex-1 btn-secondary">Skip</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div id="vehicleModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Add New Vehicle</h3>
+            <form id="vehicleForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Make</label>
+                    <input type="text" id="vehicleMake" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., Tesla" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Model</label>
+                    <input type="text" id="vehicleModel" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., Model 3" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Year</label>
+                    <input type="number" id="vehicleYear" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., 2023" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">License Plate</label>
+                    <input type="text" id="vehiclePlate" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., TN 01 AB 1234" required>
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 btn-primary">Add Vehicle</button>
+                    <button type="button" onclick="closeVehicleModal()" class="flex-1 btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 px-4 mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 EV Finder. All rights reserved. Powered by clean energy.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        // Debug logging
+        let debugLogs = [];
+        
+        function addDebugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.push({ text: logEntry, type });
+            
+            if (debugLogs.length > 50) {
+                debugLogs.shift();
+            }
+            
+            updateDebugPanel();
+            console.log(`[DEBUG] ${logEntry}`);
+        }
+
+        function updateDebugPanel() {
+            const container = document.getElementById('debugLogs');
+            if (!container) return;
+            
+            container.innerHTML = debugLogs.map(log => 
+                `<div class="debug-log-entry ${log.type}">${log.text}</div>`
+            ).join('');
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            panel.classList.toggle('visible');
+        }
+
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        addDebugLog(`User: ${user.name || 'Unknown'} (${user.email || 'No email'})`);
+        addDebugLog(`User role: ${user.role || 'Unknown'}`);
+        
+        if (!token) {
+            addDebugLog('No token found, redirecting to login', 'error');
+            window.location.href = 'login.html';
+        }
+
+        if (user.role !== 'user') {
+            addDebugLog(`User is not a regular user (role: ${user.role}), redirecting`, 'error');
+            if (user.role === 'admin') {
+                window.location.href = 'admin-dashboard.html';
+            } else if (user.role === 'mechanic') {
+                window.location.href = 'mechanic-dashboard.html';
+            } else if (user.role === 'station_owner') {
+                window.location.href = 'station-owner-dashboard.html';
+            }
+        }
+
+        // Location data for dropdowns
+        const locationData = {
+            India: {
+                states: ['Tamil Nadu', 'Maharashtra', 'Delhi', 'Karnataka', 'Gujarat', 'West Bengal', 'Telangana', 'Rajasthan', 'Uttar Pradesh', 'Kerala'],
+                cities: {
+                    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli', 'Vellore'],
+                    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane'],
+                    'Delhi': ['New Delhi', 'South Delhi', 'North Delhi', 'East Delhi', 'West Delhi'],
+                    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore'],
+                    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
+                    'West Bengal': ['Kolkata', 'Howrah', 'Darjeeling', 'Siliguri'],
+                    'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad'],
+                    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota'],
+                    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi'],
+                    'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur']
+                }
+            },
+            USA: {
+                states: ['California', 'Texas', 'New York', 'Florida', 'Illinois', 'Washington'],
+                cities: {
+                    'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
+                    'Texas': ['Houston', 'Dallas', 'Austin', 'San Antonio'],
+                    'New York': ['New York City', 'Buffalo', 'Rochester'],
+                    'Florida': ['Miami', 'Orlando', 'Tampa'],
+                    'Illinois': ['Chicago', 'Springfield'],
+                    'Washington': ['Seattle', 'Spokane']
+                }
+            },
+            UK: {
+                states: ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+                cities: {
+                    'England': ['London', 'Manchester', 'Birmingham', 'Liverpool'],
+                    'Scotland': ['Edinburgh', 'Glasgow'],
+                    'Wales': ['Cardiff', 'Swansea'],
+                    'Northern Ireland': ['Belfast']
+                }
+            },
+            Canada: {
+                states: ['Ontario', 'Quebec', 'British Columbia', 'Alberta'],
+                cities: {
+                    'Ontario': ['Toronto', 'Ottawa', 'Mississauga'],
+                    'Quebec': ['Montreal', 'Quebec City'],
+                    'British Columbia': ['Vancouver', 'Victoria'],
+                    'Alberta': ['Calgary', 'Edmonton']
+                }
+            },
+            Australia: {
+                states: ['New South Wales', 'Victoria', 'Queensland', 'Western Australia'],
+                cities: {
+                    'New South Wales': ['Sydney', 'Newcastle'],
+                    'Victoria': ['Melbourne', 'Geelong'],
+                    'Queensland': ['Brisbane', 'Gold Coast'],
+                    'Western Australia': ['Perth']
+                }
+            },
+            Germany: {
+                states: ['Bavaria', 'Berlin', 'Hamburg', 'North Rhine-Westphalia'],
+                cities: {
+                    'Bavaria': ['Munich', 'Nuremberg'],
+                    'Berlin': ['Berlin'],
+                    'Hamburg': ['Hamburg'],
+                    'North Rhine-Westphalia': ['Cologne', 'Dusseldorf']
+                }
+            },
+            France: {
+                states: ['Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes'],
+                cities: {
+                    'Île-de-France': ['Paris'],
+                    'Provence-Alpes-Côte d\'Azur': ['Marseille', 'Nice'],
+                    'Auvergne-Rhône-Alpes': ['Lyon']
+                }
+            },
+            Japan: {
+                states: ['Tokyo', 'Osaka', 'Aichi', 'Hokkaido'],
+                cities: {
+                    'Tokyo': ['Tokyo', 'Yokohama'],
+                    'Osaka': ['Osaka', 'Kyoto'],
+                    'Aichi': ['Nagoya'],
+                    'Hokkaido': ['Sapporo']
+                }
+            },
+            China: {
+                states: ['Beijing', 'Shanghai', 'Guangdong', 'Sichuan'],
+                cities: {
+                    'Beijing': ['Beijing'],
+                    'Shanghai': ['Shanghai'],
+                    'Guangdong': ['Guangzhou', 'Shenzhen'],
+                    'Sichuan': ['Chengdu']
+                }
+            }
+        };
+
+        // State variables
+        let stations = [];
+        let mechanics = [];
+        let userVehicles = [];
+        let userRequests = [];
+        let currentRequestType = 'station';
+        let selectedTimeSlot = null;
+        let selectedMechanicTimeSlot = null;
+        let selectedStation = null;
+        let selectedMechanic = null;
+        let currentFilter = 'all';
+        let currentRequestId = null;
+        let selectedRating = 0;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('userName').textContent = user.name || 'User';
+            addDebugLog('Page loaded, initializing dashboard');
+            await loadUserVehicles();
+            await loadStations();
+            await loadMechanics();
+            await loadUserRequests();
+            updateAuthButtons();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('stationDate').min = today;
+            document.getElementById('mechanicDate').min = today;
+            
+            // Initialize location dropdowns
+            if (window.updateStateDropdown) {
+                window.updateStateDropdown();
+            }
+        });
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            addDebugLog(`Toast: ${message} (${type})`, type);
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Load stations from API
+        async function loadStations() {
+            try {
+                addDebugLog('Fetching stations from API');
+                const response = await fetch(`${API_BASE_URL}/stations`);
+                
+                if (!response.ok) throw new Error('Failed to load stations');
+                
+                stations = await response.json();
+                
+                // Add location data to stations if missing
+                stations = stations.map(station => ({
+                    ...station,
+                    country: station.country || 'India',
+                    state: station.state || 'Tamil Nadu',
+                    city: station.city || 'Chennai'
+                }));
+                
+                addDebugLog(`Loaded ${stations.length} stations`, 'success');
+                
+                // Initial population of station select
+                const stationSelect = document.getElementById('stationSelect');
+                stationSelect.innerHTML = '<option value="">Choose a station</option>';
+                
+                stations.forEach(station => {
+                    const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
+                    stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
+                });
+                
+            } catch (error) {
+                addDebugLog(`Error loading stations: ${error.message}`, 'error');
+                showToast('Failed to load stations', 'error');
+                document.getElementById('stationSelect').innerHTML = '<option value="">Error loading stations</option>';
+            }
+        }
+
+        // Load mechanics from API
+        async function loadMechanics() {
+            try {
+                addDebugLog('Fetching mechanics from API');
+                const response = await fetch(`${API_BASE_URL}/mechanics`);
+                
+                if (!response.ok) throw new Error('Failed to load mechanics');
+                
+                mechanics = await response.json();
+                addDebugLog(`Loaded ${mechanics.length} mechanics`, 'success');
+                
+                const mechanicSelect = document.getElementById('mechanicSelect');
+                mechanicSelect.innerHTML = '<option value="">Choose a mechanic</option>';
+                
+                mechanics.forEach(mechanic => {
+                    if (mechanic.verified) {
+                        mechanicSelect.innerHTML += `<option value="${mechanic._id}">${mechanic.shopName} ⭐ ${mechanic.rating || 'New'}</option>`;
+                    }
+                });
+                
+            } catch (error) {
+                addDebugLog(`Error loading mechanics: ${error.message}`, 'error');
+                showToast('Failed to load mechanics', 'error');
+                document.getElementById('mechanicSelect').innerHTML = '<option value="">Error loading mechanics</option>';
+            }
+        }
+
+        // Load user vehicles
+        async function loadUserVehicles() {
+            try {
+                userVehicles = [
+                    { id: 1, make: 'Tesla', model: 'Model 3', year: 2023, plate: 'TN 01 AB 1234' },
+                    { id: 2, make: 'Hyundai', model: 'Kona', year: 2022, plate: 'TN 02 CD 5678' }
+                ];
+                addDebugLog(`Loaded ${userVehicles.length} vehicles`, 'success');
+                updateVehicleSelects();
+            } catch (error) {
+                addDebugLog(`Error loading vehicles: ${error.message}`, 'error');
+            }
+        }
+
+        // Load user requests from backend
+        async function loadUserRequests() {
+            try {
+                addDebugLog('Fetching user requests from API');
+                const response = await fetch(`${API_BASE_URL}/requests/user`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load requests');
+                
+                userRequests = await response.json();
+                addDebugLog(`Loaded ${userRequests.length} requests`, 'success');
+                
+                displayRequests();
+                updateStats();
+                
+            } catch (error) {
+                addDebugLog(`Error loading requests: ${error.message}`, 'error');
+                document.getElementById('requestsList').innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                        <p>Failed to load requests</p>
+                        <button onclick="loadUserRequests()" class="mt-4 btn-secondary">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Update vehicle selects
+        function updateVehicleSelects() {
+            const stationVehicleSelect = document.getElementById('vehicleSelect');
+            const mechanicVehicleSelect = document.getElementById('mechanicVehicleSelect');
+            
+            let options = '<option value="">Select vehicle</option>';
+            userVehicles.forEach(v => {
+                options += `<option value="${v.id}">${v.make} ${v.model} (${v.plate})</option>`;
+            });
+            
+            stationVehicleSelect.innerHTML = options;
+            mechanicVehicleSelect.innerHTML = options;
+        }
+
+        // Toggle between station and mechanic forms
+        function showRequestType(type) {
+            currentRequestType = type;
+            
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (type === 'station') {
+                document.querySelector('.toggle-btn.station').classList.add('active');
+                document.getElementById('stationRequestForm').classList.remove('hidden');
+                document.getElementById('mechanicRequestForm').classList.add('hidden');
+            } else {
+                document.querySelector('.toggle-btn.mechanic').classList.add('active');
+                document.getElementById('mechanicRequestForm').classList.remove('hidden');
+                document.getElementById('stationRequestForm').classList.add('hidden');
+            }
+        }
+
+        // Update station details when selected
+        function updateStationDetails() {
+            const stationId = document.getElementById('stationSelect').value;
+            const detailsDiv = document.getElementById('stationDetails');
+            const chargerSelect = document.getElementById('chargerType');
+            const locationHint = document.getElementById('stationLocationHint');
+            
+            if (!stationId) {
+                detailsDiv.classList.add('hidden');
+                chargerSelect.innerHTML = '<option value="">Select charger type</option>';
+                locationHint.classList.add('hidden');
+                return;
+            }
+            
+            selectedStation = stations.find(s => s._id === stationId);
+            addDebugLog(`Selected station: ${selectedStation.name}`);
+            
+            // Build location string
+            const locationParts = [];
+            if (selectedStation.city) locationParts.push(selectedStation.city);
+            if (selectedStation.state) locationParts.push(selectedStation.state);
+            if (selectedStation.country) locationParts.push(selectedStation.country);
+            const locationString = locationParts.join(', ');
+            
+            // Show location hint
+            if (locationString) {
+                locationHint.querySelector('span').textContent = locationString;
+                locationHint.classList.remove('hidden');
+            }
+            
+            detailsDiv.innerHTML = `
+                <p class="font-medium">${selectedStation.name}</p>
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <i class="fas fa-map-marker-alt"></i> ${locationString || 'Location not specified'}
+                </p>
+                <p class="text-xs mt-1">⭐ ${selectedStation.rating || 'New'} • ${selectedStation.amenities?.join(' • ') || 'No amenities'}</p>
+            `;
+            detailsDiv.classList.remove('hidden');
+            
+            chargerSelect.innerHTML = '<option value="">Select charger type</option>';
+            if (selectedStation.chargers && selectedStation.chargers.length > 0) {
+                selectedStation.chargers.forEach(charger => {
+                    const price = charger.connectors?.[0]?.pricePerKwh || 0.25;
+                    chargerSelect.innerHTML += `<option value="${charger.type}" data-price="${price}">${charger.type} - $${price}/kWh (${charger.count || 1} available)</option>`;
+                });
+            } else {
+                chargerSelect.innerHTML += `<option value="Standard Charger" data-price="0.25">Standard Charger - $0.25/kWh</option>`;
+            }
+        }
+
+        // Update mechanic details when selected
+        function updateMechanicDetails() {
+            const mechanicId = document.getElementById('mechanicSelect').value;
+            const detailsDiv = document.getElementById('mechanicDetails');
+            const serviceSelect = document.getElementById('serviceType');
+            
+            if (!mechanicId) {
+                detailsDiv.classList.add('hidden');
+                serviceSelect.innerHTML = '<option value="">Select service</option>';
+                return;
+            }
+            
+            selectedMechanic = mechanics.find(m => m._id === mechanicId);
+            addDebugLog(`Selected mechanic: ${selectedMechanic.shopName}`);
+            
+            detailsDiv.innerHTML = `
+                <p class="font-medium">${selectedMechanic.shopName}</p>
+                <p class="text-xs text-gray-500">${selectedMechanic.name}</p>
+                <p class="text-xs mt-1">⭐ ${selectedMechanic.rating || 'New'} • ${selectedMechanic.experience || 0} years exp</p>
+                <p class="text-xs text-gray-500 mt-1">📞 ${selectedMechanic.phone || 'Not provided'}</p>
+            `;
+            detailsDiv.classList.remove('hidden');
+            
+            serviceSelect.innerHTML = '<option value="">Select service</option>';
+            if (selectedMechanic.services && selectedMechanic.services.length > 0) {
+                selectedMechanic.services.forEach(service => {
+                    const price = selectedMechanic.pricing?.hourlyRate || 50;
+                    serviceSelect.innerHTML += `<option value="${service}" data-price="${price}">${service} - $${price}</option>`;
+                });
+            } else {
+                serviceSelect.innerHTML += `<option value="General Service" data-price="50">General Service - $50</option>`;
+            }
+        }
+
+        // Update price when charger type changes
+        function updatePrice() {
+            const chargerSelect = document.getElementById('chargerType');
+            const selectedOption = chargerSelect.options[chargerSelect.selectedIndex];
+            const priceDisplay = document.getElementById('estimatedPrice');
+            
+            if (chargerSelect.value && selectedTimeSlot) {
+                const price = parseFloat(selectedOption.dataset.price) * 2;
+                priceDisplay.textContent = '$' + price.toFixed(2);
+            } else {
+                priceDisplay.textContent = '$0';
+            }
+        }
+
+        // Update mechanic price when service changes
+        function updateMechanicPrice() {
+            const serviceSelect = document.getElementById('serviceType');
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const priceDisplay = document.getElementById('mechanicEstimatedPrice');
+            
+            if (serviceSelect.value && selectedMechanicTimeSlot) {
+                const price = parseFloat(selectedOption.dataset.price);
+                priceDisplay.textContent = '$' + price;
+            } else {
+                priceDisplay.textContent = '$0';
+            }
+        }
+
+        // Update time slots for station
+        function updateTimeSlots() {
+            const date = document.getElementById('stationDate').value;
+            const container = document.getElementById('stationTimeSlots');
+            
+            if (!date) {
+                container.innerHTML = '<p class="text-gray-500 text-sm col-span-3">Select a date</p>';
+                return;
+            }
+            
+            const slots = [];
+            for (let hour = 9; hour <= 20; hour++) {
+                slots.push(`${hour.toString().padStart(2, '0')}:00`);
+            }
+            
+            container.innerHTML = slots.map(time => {
+                return `<div class="time-slot" onclick="selectTimeSlot('${time}')">${time}</div>`;
+            }).join('');
+        }
+
+        // Update time slots for mechanic
+        function updateMechanicTimeSlots() {
+            const date = document.getElementById('mechanicDate').value;
+            const container = document.getElementById('mechanicTimeSlots');
+            
+            if (!date) {
+                container.innerHTML = '<p class="text-gray-500 text-sm col-span-3">Select a date</p>';
+                return;
+            }
+            
+            const slots = [];
+            for (let hour = 9; hour <= 18; hour++) {
+                slots.push(`${hour.toString().padStart(2, '0')}:00`);
+            }
+            
+            container.innerHTML = slots.map(time => {
+                return `<div class="time-slot" onclick="selectMechanicTimeSlot('${time}')">${time}</div>`;
+            }).join('');
+        }
+
+        // Select time slot for station
+        function selectTimeSlot(time) {
+            selectedTimeSlot = time;
+            document.querySelectorAll('#stationTimeSlots .time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+                if (slot.textContent.trim() === time) {
+                    slot.classList.add('selected');
+                }
+            });
+            updatePrice();
+        }
+
+        // Select time slot for mechanic
+        function selectMechanicTimeSlot(time) {
+            selectedMechanicTimeSlot = time;
+            document.querySelectorAll('#mechanicTimeSlots .time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+                if (slot.textContent.trim() === time) {
+                    slot.classList.add('selected');
+                }
+            });
+            updateMechanicPrice();
+        }
+
+        // Filter stations by location
+        function filterStationsByLocation() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const city = document.getElementById('cityFilter').value;
+            
+            let filteredStations = [...stations];
+            
+            if (country) {
+                filteredStations = filteredStations.filter(station => 
+                    station.country?.toLowerCase() === country.toLowerCase()
+                );
+            }
+            
+            if (state) {
+                filteredStations = filteredStations.filter(station => 
+                    station.state?.toLowerCase() === state.toLowerCase()
+                );
+            }
+            
+            if (city) {
+                filteredStations = filteredStations.filter(station => 
+                    station.city?.toLowerCase() === city.toLowerCase()
+                );
+            }
+            
+            const stationSelect = document.getElementById('stationSelect');
+            const locationHint = document.getElementById('stationLocationHint');
+            
+            if (filteredStations.length > 0) {
+                stationSelect.innerHTML = '<option value="">Choose a station</option>';
+                filteredStations.forEach(station => {
+                    const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
+                    stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
+                });
+                
+                document.getElementById('stationCountDisplay').textContent = filteredStations.length;
+                document.getElementById('locationStats').classList.remove('hidden');
+                
+                addDebugLog(`Found ${filteredStations.length} stations in selected location`);
+            } else {
+                stationSelect.innerHTML = '<option value="">No stations found in this location</option>';
+                document.getElementById('stationCountDisplay').textContent = '0';
+                document.getElementById('locationStats').classList.remove('hidden');
+            }
+        }
+
+        // Search by location
+        function searchByLocation() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const city = document.getElementById('cityFilter').value;
+            
+            if (!country && !state && !city) {
+                showToast('Please select at least one location filter', 'error');
+                return;
+            }
+            
+            let locationText = [];
+            if (country) locationText.push(country);
+            if (state) locationText.push(state);
+            if (city) locationText.push(city);
+            
+            addDebugLog(`Searching for stations in: ${locationText.join(', ')}`);
+            filterStationsByLocation();
+            
+            showToast(`Searching for stations in ${locationText.join(', ')}`);
+        }
+
+        // Reset location filters
+        function resetLocationFilters() {
+            document.getElementById('countryFilter').value = '';
+            document.getElementById('stateFilter').innerHTML = '<option value="">All States</option>';
+            document.getElementById('cityFilter').innerHTML = '<option value="">All Cities</option>';
+            document.getElementById('locationStats').classList.add('hidden');
+            
+            // Reset to all stations
+            const stationSelect = document.getElementById('stationSelect');
+            stationSelect.innerHTML = '<option value="">Choose a station</option>';
+            stations.forEach(station => {
+                const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
+                stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
+            });
+            
+            addDebugLog('Location filters reset');
+        }
+
+        // Update state dropdown
+        function updateStateDropdown() {
+            const country = document.getElementById('countryFilter').value;
+            const stateSelect = document.getElementById('stateFilter');
+            const citySelect = document.getElementById('cityFilter');
+            
+            if (!stateSelect) return;
+            
+            stateSelect.innerHTML = '<option value="">All States</option>';
+            if (citySelect) citySelect.innerHTML = '<option value="">All Cities</option>';
+            
+            if (country && locationData[country]) {
+                locationData[country].states.forEach(state => {
+                    stateSelect.innerHTML += `<option value="${state}">${state}</option>`;
+                });
+            }
+        }
+
+        // Update city dropdown
+        function updateCityDropdown() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const citySelect = document.getElementById('cityFilter');
+            
+            if (!citySelect) return;
+            
+            citySelect.innerHTML = '<option value="">All Cities</option>';
+            
+            if (country && state && locationData[country]?.cities[state]) {
+                locationData[country].cities[state].forEach(city => {
+                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                });
+            }
+        }
+
+        // Submit station request
+        document.getElementById('stationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const stationId = document.getElementById('stationSelect').value;
+            const chargerType = document.getElementById('chargerType').value;
+            const date = document.getElementById('stationDate').value;
+            const vehicleId = document.getElementById('vehicleSelect').value;
+            const notes = document.getElementById('stationNotes').value;
+            const station = stations.find(s => s._id === stationId);
+            const vehicle = userVehicles.find(v => v.id == vehicleId);
+            
+            if (!stationId || !chargerType || !date || !selectedTimeSlot || !vehicleId) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            const charger = station.chargers?.find(c => c.type === chargerType);
+            const price = (charger?.connectors?.[0]?.pricePerKwh || 0.25) * 2;
+            
+            addDebugLog(`Submitting station booking to ${station.name}`);
+            
+            const submitBtn = document.getElementById('submitStationBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+
+            try {
+                const requestData = {
+                    type: 'station',
+                    providerId: stationId,
+                    providerName: station.name,
+                    service: chargerType + ' Charging',
+                    vehicle: {
+                        make: vehicle.make,
+                        model: vehicle.model,
+                        year: vehicle.year,
+                        licensePlate: vehicle.plate
+                    },
+                    date: date,
+                    time: selectedTimeSlot,
+                    duration: 2,
+                    price: price,
+                    notes: notes,
+                    location: `${station.city || ''}, ${station.state || ''}`
+                };
+
+                const response = await fetch(`${API_BASE_URL}/requests`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addDebugLog(`Station booking created: ${data.requestId}`, 'success');
+                    showToast('Station booking request submitted successfully!');
+                    await loadUserRequests();
+                    
+                    document.getElementById('stationForm').reset();
+                    document.getElementById('stationDetails').classList.add('hidden');
+                    document.getElementById('estimatedPrice').textContent = '$0';
+                    selectedTimeSlot = null;
+                } else {
+                    addDebugLog(`Error: ${data.message}`, 'error');
+                    showToast(data.message || 'Failed to submit request', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error submitting request: ${error.message}`, 'error');
+                showToast('Connection error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Submit mechanic request
+        document.getElementById('mechanicForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const mechanicId = document.getElementById('mechanicSelect').value;
+            const serviceType = document.getElementById('serviceType').value;
+            const date = document.getElementById('mechanicDate').value;
+            const vehicleId = document.getElementById('mechanicVehicleSelect').value;
+            const notes = document.getElementById('mechanicNotes').value;
+            const mechanic = mechanics.find(m => m._id === mechanicId);
+            const vehicle = userVehicles.find(v => v.id == vehicleId);
+            
+            if (!mechanicId || !serviceType || !date || !selectedMechanicTimeSlot || !vehicleId || !notes) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            const price = mechanic.pricing?.hourlyRate || 50;
+            
+            addDebugLog(`Submitting mechanic request to ${mechanic.shopName}`);
+            
+            const submitBtn = document.getElementById('submitMechanicBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+
+            try {
+                const requestData = {
+                    type: 'mechanic',
+                    providerId: mechanicId,
+                    providerName: mechanic.shopName,
+                    service: serviceType,
+                    vehicle: {
+                        make: vehicle.make,
+                        model: vehicle.model,
+                        year: vehicle.year,
+                        licensePlate: vehicle.plate
+                    },
+                    date: date,
+                    time: selectedMechanicTimeSlot,
+                    duration: 1,
+                    price: price,
+                    notes: notes,
+                    location: mechanic.address ? `${mechanic.address.city || ''}, ${mechanic.address.state || ''}` : 'Location not specified'
+                };
+
+                const response = await fetch(`${API_BASE_URL}/requests`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addDebugLog(`Mechanic request created: ${data.requestId}`, 'success');
+                    showToast('Mechanic request submitted successfully!');
+                    await loadUserRequests();
+                    
+                    document.getElementById('mechanicForm').reset();
+                    document.getElementById('mechanicDetails').classList.add('hidden');
+                    document.getElementById('mechanicEstimatedPrice').textContent = '$0';
+                    selectedMechanicTimeSlot = null;
+                } else {
+                    addDebugLog(`Error: ${data.message}`, 'error');
+                    showToast(data.message || 'Failed to submit request', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error submitting request: ${error.message}`, 'error');
+                showToast('Connection error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Display requests
+        function displayRequests() {
+            const container = document.getElementById('requestsList');
+            
+            let filteredRequests = [...userRequests];
+            if (currentFilter !== 'all') {
+                filteredRequests = filteredRequests.filter(r => r.status === currentFilter);
+            }
+            
+            filteredRequests.sort((a, b) => new Date(b.requestTime) - new Date(a.requestTime));
+            
+            document.getElementById('requestsCount').textContent = filteredRequests.length + ' total';
+            
+            if (filteredRequests.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><p>No requests found</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredRequests.map(request => {
+                const price = request.price ? `$${request.price}` : '$0';
+                
+                return `
+                <div class="request-card ${request.type} ${request.status}" onclick="showRequestDetails('${request._id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-semibold">${request.providerName}</h4>
+                            <p class="text-sm text-gray-600">
+                                ${request.type === 'station' ? '⚡ ' + request.service : '🔧 ' + request.service}
+                            </p>
+                        </div>
+                        <span class="status-badge status-${request.status}">
+                            ${formatStatus(request.status)}
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                        <span><i class="far fa-calendar mr-1"></i>${new Date(request.date).toLocaleDateString()}</span>
+                        <span><i class="far fa-clock mr-1"></i>${request.time}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-green-600">${price}</span>
+                        <span class="text-xs text-gray-500">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</span>
+                    </div>
+                    
+                    ${request.providerResponse ? `
+                        <div class="mt-2 text-xs text-blue-600">
+                            <i class="fas fa-comment-dots mr-1"></i>Provider responded
+                        </div>
+                    ` : ''}
+                    
+                    ${request.notes ? `<p class="text-xs text-gray-500 mt-2">📝 ${request.notes.substring(0, 50)}${request.notes.length > 50 ? '...' : ''}</p>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        // Format status for display
+        function formatStatus(status) {
+            const statusMap = {
+                'pending': '⏳ Pending',
+                'accepted': '✅ Accepted',
+                'in-progress': '🔄 In Progress',
+                'completed': '✔️ Completed',
+                'cancelled': '❌ Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Show request details
+        async function showRequestDetails(requestId) {
+            try {
+                addDebugLog(`Fetching details for request: ${requestId}`);
+                const response = await fetch(`${API_BASE_URL}/requests/${requestId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load request details');
+                
+                const request = await response.json();
+                currentRequestId = requestId;
+                
+                const modal = document.getElementById('requestModal');
+                const content = document.getElementById('requestDetailsContent');
+                
+                const timelineHtml = request.timeline?.map(item => `
+                    <div class="timeline-item ${item.status}">
+                        <div class="font-medium">${formatStatus(item.status)}</div>
+                        <div class="text-sm text-gray-600">${new Date(item.time).toLocaleString()}</div>
+                        <div class="text-xs text-gray-500">${item.note}</div>
+                    </div>
+                `).join('') || '<p>No timeline available</p>';
+                
+                let detailsHtml = '';
+                if (request.type === 'station') {
+                    detailsHtml = `
+                        <div class="space-y-4">
+                            <div class="border-b pb-3">
+                                <h4 class="font-bold text-xl">${request.providerName}</h4>
+                                <p class="text-sm text-gray-600">⚡ Station Charging Request</p>
+                                <p class="text-xs text-gray-500 mt-1">Request ID: ${request.requestId || 'N/A'}</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><p class="text-xs text-gray-500">Service</p><p class="font-medium">${request.service}</p></div>
+                                <div><p class="text-xs text-gray-500">Date & Time</p><p class="font-medium">${new Date(request.date).toLocaleDateString()} at ${request.time}</p></div>
+                                <div><p class="text-xs text-gray-500">Vehicle</p><p class="font-medium">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</p></div>
+                                <div><p class="text-xs text-gray-500">Price</p><p class="font-medium text-green-600">$${request.price || 0}</p></div>
+                            </div>
+                            
+                            ${request.notes ? `
+                                <div>
+                                    <p class="text-xs text-gray-500 mb-1">Your Notes</p>
+                                    <p class="text-sm bg-gray-50 p-2 rounded">${request.notes}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${request.providerResponse ? `
+                                <div class="provider-response">
+                                    <p class="text-xs text-blue-600 font-semibold mb-1">Provider Response:</p>
+                                    <p class="text-sm">${request.providerResponse.message}</p>
+                                    <p class="text-xs text-gray-500 mt-1">${new Date(request.providerResponse.respondedAt).toLocaleString()}</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div>
+                                <p class="font-semibold mb-2">Timeline</p>
+                                <div class="space-y-1">${timelineHtml}</div>
+                            </div>
+                            
+                            <div class="flex gap-3 mt-4">
+                                ${request.status === 'pending' || request.status === 'accepted' ? `
+                                    <button onclick="cancelRequest('${request._id}')" class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600">
+                                        Cancel Request
+                                    </button>
+                                ` : ''}
+                                ${request.status === 'completed' && !request.rating ? `
+                                    <button onclick="openRatingModal('${request._id}', '${request.providerName}')" class="flex-1 bg-yellow-500 text-white py-3 rounded-lg hover:bg-yellow-600">
+                                        Rate Service
+                                    </button>
+                                ` : ''}
+                                <button onclick="closeRequestModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    detailsHtml = `
+                        <div class="space-y-4">
+                            <div class="border-b pb-3">
+                                <h4 class="font-bold text-xl">${request.providerName}</h4>
+                                <p class="text-sm text-gray-600">🔧 Mechanic Service Request</p>
+                                <p class="text-xs text-gray-500 mt-1">Request ID: ${request.requestId || 'N/A'}</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><p class="text-xs text-gray-500">Service</p><p class="font-medium">${request.service}</p></div>
+                                <div><p class="text-xs text-gray-500">Date & Time</p><p class="font-medium">${new Date(request.date).toLocaleDateString()} at ${request.time}</p></div>
+                                <div><p class="text-xs text-gray-500">Vehicle</p><p class="font-medium">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</p></div>
+                                <div><p class="text-xs text-gray-500">Price</p><p class="font-medium text-green-600">$${request.price || 0}</p></div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Issue Description</p>
+                                <p class="text-sm bg-gray-50 p-2 rounded">${request.notes}</p>
+                            </div>
+                            
+                            ${request.providerResponse ? `
+                                <div class="provider-response">
+                                    <p class="text-xs text-blue-600 font-semibold mb-1">Mechanic Response:</p>
+                                    <p class="text-sm">${request.providerResponse.message}</p>
+                                    <p class="text-xs text-gray-500 mt-1">${new Date(request.providerResponse.respondedAt).toLocaleString()}</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div>
+                                <p class="font-semibold mb-2">Timeline</p>
+                                <div class="space-y-1">${timelineHtml}</div>
+                            </div>
+                            
+                            <div class="flex gap-3 mt-4">
+                                ${request.status === 'pending' || request.status === 'accepted' ? `
+                                    <button onclick="cancelRequest('${request._id}')" class="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600">
+                                        Cancel Request
+                                    </button>
+                                ` : ''}
+                                ${request.status === 'completed' && !request.rating ? `
+                                    <button onclick="openRatingModal('${request._id}', '${request.providerName}')" class="flex-1 bg-yellow-500 text-white py-3 rounded-lg hover:bg-yellow-600">
+                                        Rate Service
+                                    </button>
+                                ` : ''}
+                                <button onclick="closeRequestModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = detailsHtml;
+                modal.classList.remove('hidden');
+                
+            } catch (error) {
+                addDebugLog(`Error loading request details: ${error.message}`, 'error');
+                showToast('Failed to load request details', 'error');
+            }
+        }
+
+        // Cancel request
+        async function cancelRequest(requestId) {
+            if (!confirm('Are you sure you want to cancel this request?')) return;
+            
+            try {
+                addDebugLog(`Cancelling request: ${requestId}`);
+                const response = await fetch(`${API_BASE_URL}/requests/${requestId}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    addDebugLog('Request cancelled successfully', 'success');
+                    showToast('Request cancelled successfully');
+                    await loadUserRequests();
+                    closeRequestModal();
+                } else {
+                    const data = await response.json();
+                    addDebugLog(`Error cancelling: ${data.message}`, 'error');
+                    showToast(data.message || 'Failed to cancel request', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error cancelling request: ${error.message}`, 'error');
+                showToast('Failed to cancel request', 'error');
+            }
+        }
+
+        // Open rating modal
+        function openRatingModal(requestId, providerName) {
+            currentRequestId = requestId;
+            document.getElementById('providerName').textContent = providerName;
+            document.getElementById('ratingModal').classList.remove('hidden');
+        }
+
+        // Set rating
+        function setRating(rating) {
+            selectedRating = rating;
+            const stars = document.querySelectorAll('#ratingModal .rating-stars i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fas fa-star';
+                } else {
+                    star.className = 'far fa-star';
+                }
+            });
+            document.getElementById('selectedRating').textContent = rating;
+        }
+
+        // Submit rating
+        async function submitRating() {
+            if (selectedRating === 0) {
+                showToast('Please select a rating', 'error');
+                return;
+            }
+            
+            const review = document.getElementById('reviewText').value;
+            
+            try {
+                addDebugLog(`Submitting rating for request: ${currentRequestId}`);
+                const response = await fetch(`${API_BASE_URL}/requests/${currentRequestId}/rate`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ rating: selectedRating, review })
+                });
+                
+                if (response.ok) {
+                    addDebugLog('Rating submitted successfully', 'success');
+                    showToast('Thank you for your rating!');
+                    closeRatingModal();
+                    closeRequestModal();
+                    await loadUserRequests();
+                } else {
+                    const data = await response.json();
+                    addDebugLog(`Error submitting rating: ${data.message}`, 'error');
+                    showToast(data.message || 'Failed to submit rating', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error submitting rating: ${error.message}`, 'error');
+                showToast('Failed to submit rating', 'error');
+            }
+        }
+
+        // Close request modal
+        function closeRequestModal() {
+            document.getElementById('requestModal').classList.add('hidden');
+        }
+
+        // Close rating modal
+        function closeRatingModal() {
+            document.getElementById('ratingModal').classList.add('hidden');
+            selectedRating = 0;
+            document.getElementById('reviewText').value = '';
+            document.querySelectorAll('#ratingModal .rating-stars i').forEach(star => {
+                star.className = 'far fa-star';
+            });
+        }
+
+        // Filter requests
+        function filterRequests(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            displayRequests();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = userRequests.length;
+            const pending = userRequests.filter(r => r.status === 'pending').length;
+            const inProgress = userRequests.filter(r => r.status === 'accepted' || r.status === 'in-progress').length;
+            const completed = userRequests.filter(r => r.status === 'completed').length;
+            const spent = userRequests.filter(r => r.status === 'completed').reduce((sum, r) => sum + (r.price || 0), 0);
+            
+            document.getElementById('totalRequests').textContent = total;
+            document.getElementById('pendingRequests').textContent = pending;
+            document.getElementById('inProgressRequests').textContent = inProgress;
+            document.getElementById('completedRequests').textContent = completed;
+        }
+
+        // Vehicle modal functions
+        function showAddVehicle() {
+            document.getElementById('vehicleModal').classList.remove('hidden');
+        }
+
+        function closeVehicleModal() {
+            document.getElementById('vehicleModal').classList.add('hidden');
+        }
+
+        document.getElementById('vehicleForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const make = document.getElementById('vehicleMake').value;
+            const model = document.getElementById('vehicleModel').value;
+            const year = document.getElementById('vehicleYear').value;
+            const plate = document.getElementById('vehiclePlate').value;
+            
+            const newVehicle = {
+                id: userVehicles.length + 1,
+                make, model, year, plate
+            };
+            
+            userVehicles.push(newVehicle);
+            updateVehicleSelects();
+            addDebugLog(`New vehicle added: ${make} ${model}`, 'success');
+            showToast('Vehicle added successfully!');
+            closeVehicleModal();
+            e.target.reset();
+        });
+
+        // Update auth buttons
+        function updateAuthButtons() {
+            const authButtons = document.getElementById('authButtons');
+            const mobileAuthButtons = document.getElementById('mobileAuthButtons');
+            
+            if (authButtons) {
+                authButtons.innerHTML = `
+                    <span class="px-5 py-2 text-green-600 font-semibold">
+                        <i class="fas fa-user mr-2"></i>${user.name || 'User'}
+                    </span>
+                    <button onclick="logout()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-5 py-2 rounded-lg font-semibold transition">
+                        Logout
+                    </button>
+                `;
+            }
+            
+            if (mobileAuthButtons) {
+                mobileAuthButtons.innerHTML = `
+                    <div class="flex flex-col space-y-3 pt-3 border-t border-gray-200">
+                        <span class="px-5 py-2 text-green-600 font-semibold text-center">
+                            <i class="fas fa-user mr-2"></i>${user.name || 'User'}
+                        </span>
+                        <button onclick="logout()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-5 py-2 rounded-lg font-semibold transition w-full">
+                            Logout
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Logout
+        window.logout = function() {
+            addDebugLog('Logging out', 'info');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('rememberedEmail');
+            window.location.href = 'index.html';
+        };
+        
+        // Make functions globally available
+        window.filterStationsByLocation = filterStationsByLocation;
+        window.searchByLocation = searchByLocation;
+        window.resetLocationFilters = resetLocationFilters;
+        window.updateStateDropdown = updateStateDropdown;
+        window.updateCityDropdown = updateCityDropdown;
+    </script>
+    
+    <!-- Add Currency Selector Script -->
+    <script src="currency-selector.js"></script>
+    <script>
+        // Add this helper function for price formatting
+        function formatPrice(priceUSD, currencyInfo = null) {
+            if (!currencyInfo) {
+                if (window.currencySelector) {
+                    return window.currencySelector.formatPrice(priceUSD);
+                }
+                return `$${priceUSD.toFixed(2)}`;
+            }
+            const convertedPrice = priceUSD * (currencyInfo.exchangeRate || 1);
+            return `${currencyInfo.symbol || '$'}${convertedPrice.toFixed(2)}`;
+        }
+
+        // Update the price display in the form
+        function updatePrice() {
+            const chargerSelect = document.getElementById('chargerType');
+            const selectedOption = chargerSelect.options[chargerSelect.selectedIndex];
+            const priceDisplay = document.getElementById('estimatedPrice');
+            
+            if (chargerSelect.value && selectedTimeSlot) {
+                const priceUSD = parseFloat(selectedOption.dataset.price) * 2;
+                
+                if (window.currencySelector) {
+                    const formatted = window.currencySelector.formatPrice(priceUSD);
+                    priceDisplay.textContent = formatted;
+                    priceDisplay.dataset.priceUsd = priceUSD;
+                } else {
+                    priceDisplay.textContent = '$' + priceUSD.toFixed(2);
+                }
+            } else {
+                priceDisplay.textContent = '$0';
+            }
+        }
+
+        // Update the mechanic price display
+        function updateMechanicPrice() {
+            const serviceSelect = document.getElementById('serviceType');
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const priceDisplay = document.getElementById('mechanicEstimatedPrice');
+            
+            if (serviceSelect.value && selectedMechanicTimeSlot) {
+                const priceUSD = parseFloat(selectedOption.dataset.price);
+                
+                if (window.currencySelector) {
+                    const formatted = window.currencySelector.formatPrice(priceUSD);
+                    priceDisplay.textContent = formatted;
+                    priceDisplay.dataset.priceUsd = priceUSD;
+                } else {
+                    priceDisplay.textContent = '$' + priceUSD;
+                }
+            } else {
+                priceDisplay.textContent = '$0';
+            }
+        }
+
+        // Update displayRequests to show formatted prices
+        const originalDisplayRequests = displayRequests;
+        displayRequests = function() {
+            const container = document.getElementById('requestsList');
+            
+            let filteredRequests = [...userRequests];
+            if (currentFilter !== 'all') {
+                filteredRequests = filteredRequests.filter(r => r.status === currentFilter);
+            }
+            
+            filteredRequests.sort((a, b) => new Date(b.requestTime) - new Date(a.requestTime));
+            
+            document.getElementById('requestsCount').textContent = filteredRequests.length + ' total';
+            
+            if (filteredRequests.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><p>No requests found</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredRequests.map(request => {
+                const currencyInfo = request.currency || { symbol: '$', code: 'USD', exchangeRate: 1 };
+                const formattedPrice = formatPrice(request.price, currencyInfo);
+                
+                return `
+                <div class="request-card ${request.type} ${request.status}" onclick="showRequestDetails('${request._id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-semibold">${request.providerName}</h4>
+                            <p class="text-sm text-gray-600">
+                                ${request.type === 'station' ? '⚡ ' + request.service : '🔧 ' + request.service}
+                            </p>
+                        </div>
+                        <span class="status-badge status-${request.status}">
+                            ${formatStatus(request.status)}
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                        <span><i class="far fa-calendar mr-1"></i>${new Date(request.date).toLocaleDateString()}</span>
+                        <span><i class="far fa-clock mr-1"></i>${request.time}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-green-600">${formattedPrice}</span>
+                        <span class="text-xs text-gray-500">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</span>
+                    </div>
+                    
+                    ${request.providerResponse ? `
+                        <div class="mt-2 text-xs text-blue-600">
+                            <i class="fas fa-comment-dots mr-1"></i>Provider responded
+                        </div>
+                    ` : ''}
+                    
+                    ${request.notes ? `<p class="text-xs text-gray-500 mt-2">📝 ${request.notes.substring(0, 50)}${request.notes.length > 50 ? '...' : ''}</p>` : ''}
+                </div>
+            `}).join('');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - EV Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            -webkit-backdrop-filter: blur(10px); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .input-field { 
+            transition: all 0.3s; 
+            border: 2px solid #e5e7eb; 
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: #f9fafb;
+        }
+        .input-field:focus { 
+            border-color: #10b981; 
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); 
+            outline: none; 
+            background: white;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%); 
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.75rem; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-primary:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); 
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-secondary:hover {
+            border-color: #10b981;
+            background: #f9fafb;
+        }
+        .btn-google, .btn-apple {
+            background: white;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-google:hover {
+            border-color: #ea4335;
+            background: #fef2f2;
+        }
+        .btn-apple:hover {
+            border-color: #000;
+            background: #f9fafb;
+        }
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+        }
+        .otp-input:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .timer {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .resend-btn {
+            color: #10b981;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            background: none;
+            border: none;
+        }
+        .resend-btn:disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-notification.error {
+            border-left-color: #ef4444;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin: 1.5rem 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .divider::before {
+            margin-right: 1rem;
+        }
+        .divider::after {
+            margin-left: 1rem;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 1;
+        }
+        .step.active .step-circle {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+        .step.completed .step-circle {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            position: relative;
+            z-index: 2;
+            font-weight: 600;
+        }
+        .step-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        .step.active .step-label {
+            color: #10b981;
+            font-weight: 600;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .role-badge.admin {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .role-badge.mechanic {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .role-badge.owner {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .role-badge.user {
+            background: #dcfce7;
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+    <div class="w-full max-w-md">
+        <!-- Back to home -->
+        <a href="index.html" class="inline-flex items-center text-white bg-green-600 bg-opacity-50 hover:bg-opacity-70 px-4 py-2 rounded-lg mb-4 transition backdrop-blur-sm">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Home
+        </a>
+        
+        <!-- Register Card -->
+        <div class="glass-card p-6">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl 
+                            flex items-center justify-center mx-auto mb-3 transform hover:scale-110 transition">
+                    <span class="text-white text-3xl font-bold">⚡</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Create Account</h1>
+                <p class="text-gray-600 text-sm mt-1">Join EV Finder today</p>
+            </div>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator mb-6">
+                <div class="step active" id="step1Indicator">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Details</div>
+                </div>
+                <div class="step" id="step2Indicator">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Verify OTP</div>
+                </div>
+                <div class="step" id="step3Indicator">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Complete</div>
+                </div>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="errorMessage" class="bg-red-50 text-red-600 p-3 rounded-lg mb-3 hidden flex items-center text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span id="errorText"></span>
+            </div>
+            
+            <!-- Success Message -->
+            <div id="successMessage" class="bg-green-50 text-green-600 p-3 rounded-lg mb-3 hidden flex items-center text-sm">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span id="successText"></span>
+            </div>
+            
+            <!-- Step 1: Registration Form -->
+            <div id="step1">
+                <form id="registerForm" class="space-y-3">
+                    <!-- Basic Info -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-user text-green-600 mr-1 text-sm"></i>Full Name *
+                        </label>
+                        <input type="text" id="name" required 
+                               class="input-field text-sm"
+                               placeholder="John Doe">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-envelope text-green-600 mr-1 text-sm"></i>Email Address *
+                        </label>
+                        <input type="email" id="email" required 
+                               class="input-field text-sm"
+                               placeholder="john@example.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-phone text-green-600 mr-1 text-sm"></i>Phone Number
+                        </label>
+                        <input type="tel" id="phone" 
+                               class="input-field text-sm"
+                               placeholder="(555) 123-4567">
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-user-tag text-green-600 mr-1 text-sm"></i>Register As *
+                        </label>
+                        <select id="role" class="w-full px-3 py-2 rounded-lg bg-gray-50 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm">
+                            <option value="user">👤 EV Owner / User</option>
+                            <option value="mechanic">🔧 EV Mechanic</option>
+                            <option value="station_owner">⚡ Station Owner</option>
+                            <option value="admin">⚙️ Admin</option>
+                        </select>
+                    </div>
+
+                    <!-- Admin Registration Note -->
+                    <div id="adminNote" class="hidden bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg text-sm">
+                        <p class="text-yellow-700">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Admin accounts are created by invitation only. Please contact the system administrator.
+                        </p>
+                    </div>
+
+                    <!-- Mechanic-specific fields -->
+                    <div id="mechanicFields" class="hidden space-y-3 p-3 bg-gray-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 text-sm flex items-center">
+                            <i class="fas fa-tools text-green-600 mr-2"></i>
+                            Mechanic Information
+                        </h3>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-store text-green-600 mr-1"></i>Shop Name *
+                            </label>
+                            <input type="text" id="shopName" class="input-field text-sm" placeholder="e.g., EV Expert Garage">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-briefcase text-green-600 mr-1"></i>Years of Experience *
+                            </label>
+                            <input type="number" id="experience" min="0" max="50" class="input-field text-sm" placeholder="e.g., 5">
+                        </div>
+
+                        <!-- Services Offered -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-2">
+                                <i class="fas fa-wrench text-green-600 mr-1"></i>Services Offered
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="General Maintenance" class="service-checkbox rounded text-green-600">
+                                    <span>General Maintenance</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Battery Service" class="service-checkbox rounded text-green-600">
+                                    <span>Battery Service</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Motor Repair" class="service-checkbox rounded text-green-600">
+                                    <span>Motor Repair</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Software Updates" class="service-checkbox rounded text-green-600">
+                                    <span>Software Updates</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Emergency Repair" class="service-checkbox rounded text-green-600">
+                                    <span>Emergency Repair</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Tire Service" class="service-checkbox rounded text-green-600">
+                                    <span>Tire Service</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="Brake Service" class="service-checkbox rounded text-green-600">
+                                    <span>Brake Service</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs">
+                                    <input type="checkbox" value="HVAC Service" class="service-checkbox rounded text-green-600">
+                                    <span>HVAC Service</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Service -->
+                        <div class="flex items-center">
+                            <input type="checkbox" id="emergencyService" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <label for="emergencyService" class="ml-2 text-xs text-gray-700">
+                                <i class="fas fa-ambulance text-red-500 mr-1"></i>
+                                24/7 Emergency Service Available
+                            </label>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-map-marker-alt text-green-600 mr-1"></i>Shop Address
+                            </label>
+                            <input type="text" id="shopStreet" class="input-field text-sm mb-2" placeholder="Street address">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="shopCity" class="input-field text-sm" placeholder="City">
+                                <input type="text" id="shopState" class="input-field text-sm" placeholder="State">
+                            </div>
+                            <input type="text" id="shopZip" class="input-field text-sm mt-2" placeholder="ZIP Code">
+                        </div>
+                    </div>
+
+                    <!-- Station Owner-specific fields -->
+                    <div id="stationOwnerFields" class="hidden space-y-3 p-3 bg-blue-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-700 text-sm flex items-center">
+                            <i class="fas fa-charging-station text-blue-600 mr-2"></i>
+                            Station Owner Information
+                        </h3>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-building text-blue-600 mr-1"></i>Company/Business Name *
+                            </label>
+                            <input type="text" id="companyName" class="input-field text-sm" placeholder="e.g., Green Energy Solutions">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-id-card text-blue-600 mr-1"></i>Business Registration Number
+                            </label>
+                            <input type="text" id="businessReg" class="input-field text-sm" placeholder="e.g., REG-2024-001">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-map-marker-alt text-blue-600 mr-1"></i>Business Address
+                            </label>
+                            <input type="text" id="businessStreet" class="input-field text-sm mb-2" placeholder="Street address">
+                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                <input type="text" id="businessCity" class="input-field text-sm" placeholder="City">
+                                <input type="text" id="businessState" class="input-field text-sm" placeholder="State">
+                            </div>
+                            <input type="text" id="businessZip" class="input-field text-sm" placeholder="ZIP Code">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-globe text-blue-600 mr-1"></i>Website (Optional)
+                            </label>
+                            <input type="url" id="website" class="input-field text-sm" placeholder="https://example.com">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold text-xs mb-1">
+                                <i class="fas fa-file-alt text-blue-600 mr-1"></i>GST Number (Optional)
+                            </label>
+                            <input type="text" id="gstNumber" class="input-field text-sm" placeholder="e.g., 22AAAAA0000A1Z5">
+                        </div>
+                    </div>
+
+                    <!-- Password Fields -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-lock text-green-600 mr-1 text-sm"></i>Password *
+                        </label>
+                        <input type="password" id="password" required 
+                               class="input-field text-sm"
+                               placeholder="••••••••">
+                        <p class="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-semibold text-sm mb-1">
+                            <i class="fas fa-lock text-green-600 mr-1 text-sm"></i>Confirm Password *
+                        </label>
+                        <input type="password" id="confirmPassword" required 
+                               class="input-field text-sm"
+                               placeholder="••••••••">
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="flex items-start">
+                        <input type="checkbox" id="terms" required class="mt-1 rounded border-gray-300 text-green-600 shadow-sm focus:ring-green-500">
+                        <label for="terms" class="ml-2 text-xs text-gray-600">
+                            I agree to the <a href="#" class="text-green-600 hover:underline">Terms of Service</a> and 
+                            <a href="#" class="text-green-600 hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" 
+                            class="w-full btn-primary py-3 text-base font-bold">
+                        <span id="btnText">Send OTP</span>
+                        <i id="btnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="divider">
+                    <span>Or continue with</span>
+                </div>
+
+                <!-- Social Login Buttons -->
+                <div class="space-y-3 mt-3">
+                    <button onclick="handleGoogleSignIn()" class="btn-google">
+                        <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <button onclick="handleAppleSignIn()" class="btn-apple">
+                        <i class="fab fa-apple text-xl"></i>
+                        <span>Continue with Apple</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: OTP Verification -->
+            <div id="step2" class="hidden">
+                <div class="text-center mb-4">
+                    <p class="text-sm text-gray-600">We've sent a verification code to</p>
+                    <p class="font-semibold text-green-600" id="otpEmailDisplay"></p>
+                </div>
+                
+                <div class="otp-container">
+                    <input type="text" class="otp-input" id="otp1" maxlength="1" onkeyup="moveToNext(this, 'otp2')" onkeypress="return onlyNumberKey(event)">
+                    <input type="text" class="otp-input" id="otp2" maxlength="1" onkeyup="moveToNext(this, 'otp3')" onkeypress="return onlyNumberKey(event)">
+                    <input type="text" class="otp-input" id="otp3" maxlength="1" onkeyup="moveToNext(this, 'otp4')" onkeypress="return onlyNumberKey(event)">
+                    <input type="text" class="otp-input" id="otp4" maxlength="1" onkeyup="moveToNext(this, 'otp5')" onkeypress="return onlyNumberKey(event)">
+                    <input type="text" class="otp-input" id="otp5" maxlength="1" onkeyup="moveToNext(this, 'otp6')" onkeypress="return onlyNumberKey(event)">
+                    <input type="text" class="otp-input" id="otp6" maxlength="1" onkeypress="return onlyNumberKey(event)">
+                </div>
+
+                <div class="text-center mb-4">
+                    <span class="timer" id="timer">10:00</span>
+                </div>
+
+                <div class="text-center mb-4">
+                    <button class="resend-btn" id="resendBtn" onclick="resendOTP()" disabled>Resend OTP</button>
+                </div>
+
+                <button onclick="verifyOTP()" id="verifyBtn" class="btn-primary mb-3">
+                    Verify OTP
+                </button>
+
+                <button onclick="backToStep1()" class="text-sm text-gray-600 hover:text-green-600 w-full">
+                    ← Back to Registration
+                </button>
+            </div>
+
+            <!-- Step 3: Success -->
+            <div id="step3" class="hidden text-center py-8">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check-circle text-4xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
+                <p class="text-gray-600 mb-6" id="successMessage"></p>
+                <div class="space-y-3">
+                    <a href="login.html" class="btn-primary inline-block">
+                        Proceed to Login
+                    </a>
+                    <a href="index.html" class="btn-secondary inline-block">
+                        Go to Home
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Login Link -->
+            <p class="text-center text-gray-600 text-sm mt-4">
+                Already have an account? 
+                <a href="login.html" class="text-green-600 font-semibold hover:text-green-700 hover:underline">
+                    Sign in
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let timerInterval;
+        let timeLeft = 600; // 10 minutes in seconds
+        let registrationEmail = '';
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('errorMessage').classList.add('hidden');
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('successText').textContent = message;
+            document.getElementById('successMessage').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('successMessage').classList.add('hidden');
+            }, 5000);
+        }
+
+        // Toggle role-specific fields
+        document.getElementById('role').addEventListener('change', function(e) {
+            const role = e.target.value;
+            const mechanicFields = document.getElementById('mechanicFields');
+            const stationOwnerFields = document.getElementById('stationOwnerFields');
+            const adminNote = document.getElementById('adminNote');
+            
+            // Hide all first
+            mechanicFields.classList.add('hidden');
+            stationOwnerFields.classList.add('hidden');
+            adminNote.classList.add('hidden');
+            
+            // Show relevant fields based on role
+            if (role === 'mechanic') {
+                mechanicFields.classList.remove('hidden');
+            } else if (role === 'station_owner') {
+                stationOwnerFields.classList.remove('hidden');
+            } else if (role === 'admin') {
+                adminNote.classList.remove('hidden');
+            }
+        });
+
+        // Only allow numbers in OTP inputs
+        window.onlyNumberKey = function(evt) {
+            const charCode = evt.which ? evt.which : evt.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                return false;
+            }
+            return true;
+        };
+
+        // Move to next OTP input
+        window.moveToNext = function(current, nextId) {
+            if (current.value.length === 1) {
+                const next = document.getElementById(nextId);
+                if (next) {
+                    next.focus();
+                }
+            }
+        };
+
+        // Start timer
+        function startTimer(seconds) {
+            timeLeft = seconds;
+            updateTimerDisplay();
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = 'OTP expired';
+                    document.getElementById('resendBtn').disabled = false;
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Back to step 1
+        window.backToStep1 = function() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            clearInterval(timerInterval);
+            
+            // Update step indicator
+            document.getElementById('step1Indicator').classList.add('active');
+            document.getElementById('step2Indicator').classList.remove('active');
+        };
+
+        // Step 1: Send OTP
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const role = document.getElementById('role').value;
+            const terms = document.getElementById('terms').checked;
+            
+            // Hide previous messages
+            document.getElementById('errorMessage').classList.add('hidden');
+            
+            // Basic validation
+            if (!name || !email || !password || !confirmPassword) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+            
+            // Validate password length
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters');
+                return;
+            }
+            
+            // Validate terms
+            if (!terms) {
+                showError('You must agree to the Terms of Service');
+                return;
+            }
+            
+            // Role-specific validation
+            if (role === 'mechanic') {
+                const shopName = document.getElementById('shopName').value;
+                const experience = document.getElementById('experience').value;
+                
+                if (!shopName) {
+                    showError('Shop name is required for mechanics');
+                    return;
+                }
+                
+                if (!experience || experience < 0) {
+                    showError('Please enter valid years of experience');
+                    return;
+                }
+            }
+            
+            if (role === 'station_owner') {
+                const companyName = document.getElementById('companyName').value;
+                
+                if (!companyName) {
+                    showError('Company name is required for station owners');
+                    return;
+                }
+            }
+            
+            if (role === 'admin') {
+                showError('Admin accounts cannot be created through registration. Please contact system administrator.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            submitBtn.disabled = true;
+            btnText.textContent = 'Sending OTP...';
+            btnSpinner.classList.remove('hidden');
+            
+            // Prepare registration data
+            const registrationData = {
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                password,
+                phone: phone ? phone.trim() : undefined,
+                role
+            };
+            
+            // Add mechanic-specific fields
+            if (role === 'mechanic') {
+                // Get selected services
+                const services = [];
+                document.querySelectorAll('#mechanicFields .service-checkbox:checked').forEach(cb => {
+                    services.push(cb.value);
+                });
+                
+                registrationData.shopName = document.getElementById('shopName').value;
+                registrationData.experience = parseInt(document.getElementById('experience').value);
+                registrationData.services = services.length > 0 ? services : ['General Maintenance'];
+                registrationData.emergencyService = document.getElementById('emergencyService').checked;
+                registrationData.address = {
+                    street: document.getElementById('shopStreet').value || 'Not provided',
+                    city: document.getElementById('shopCity').value || 'Not provided',
+                    state: document.getElementById('shopState').value || 'Not provided',
+                    zipCode: document.getElementById('shopZip').value || 'Not provided'
+                };
+            }
+            
+            // Add station owner-specific fields
+            if (role === 'station_owner') {
+                registrationData.companyName = document.getElementById('companyName').value;
+                registrationData.businessReg = document.getElementById('businessReg').value || 'Not provided';
+                registrationData.website = document.getElementById('website').value || 'Not provided';
+                registrationData.gstNumber = document.getElementById('gstNumber').value || 'Not provided';
+                registrationData.address = {
+                    street: document.getElementById('businessStreet').value || 'Not provided',
+                    city: document.getElementById('businessCity').value || 'Not provided',
+                    state: document.getElementById('businessState').value || 'Not provided',
+                    zipCode: document.getElementById('businessZip').value || 'Not provided'
+                };
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/send-register-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    registrationEmail = email;
+                    
+                    // Move to OTP step
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                    document.getElementById('otpEmailDisplay').textContent = email;
+                    
+                    // Update step indicator
+                    document.getElementById('step1Indicator').classList.remove('active');
+                    document.getElementById('step1Indicator').classList.add('completed');
+                    document.getElementById('step2Indicator').classList.add('active');
+                    
+                    // Start timer
+                    startTimer(600);
+                    
+                    showSuccess('OTP sent successfully! Please check your email.');
+                    
+                    // Clear OTP inputs
+                    for (let i = 1; i <= 6; i++) {
+                        document.getElementById(`otp${i}`).value = '';
+                    }
+                    document.getElementById('otp1').focus();
+                } else {
+                    showError(data.message || 'Failed to send OTP');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Connection error. Please make sure the backend server is running.');
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                btnText.textContent = 'Send OTP';
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
+        // Step 2: Verify OTP
+        window.verifyOTP = async function() {
+            const otp = [
+                document.getElementById('otp1').value,
+                document.getElementById('otp2').value,
+                document.getElementById('otp3').value,
+                document.getElementById('otp4').value,
+                document.getElementById('otp5').value,
+                document.getElementById('otp6').value
+            ].join('');
+
+            if (otp.length !== 6) {
+                showError('Please enter complete OTP');
+                return;
+            }
+
+            const verifyBtn = document.getElementById('verifyBtn');
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-register-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        email: registrationEmail, 
+                        otp 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save auth data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Move to success step
+                    document.getElementById('step2').classList.add('hidden');
+                    document.getElementById('step3').classList.remove('hidden');
+                    
+                    // Update step indicator
+                    document.getElementById('step2Indicator').classList.remove('active');
+                    document.getElementById('step2Indicator').classList.add('completed');
+                    document.getElementById('step3Indicator').classList.add('active');
+                    
+                    // Set success message based on role
+                    const successMsg = document.getElementById('successMessage');
+                    const role = data.user.role;
+                    
+                    let successText = '';
+                    if (role === 'mechanic') {
+                        successText = 'Your mechanic account has been created and is pending admin verification. You will receive an email once verified.';
+                    } else if (role === 'station_owner') {
+                        successText = 'Your station owner account has been created successfully! You can now log in and start adding your stations.';
+                    } else if (role === 'admin') {
+                        successText = 'Admin account created successfully! You have full access to the platform.';
+                    } else {
+                        successText = 'Your account has been created successfully! You can now log in and start using EV Finder.';
+                    }
+                    
+                    successMsg.innerHTML = successText;
+                    
+                    clearInterval(timerInterval);
+                    
+                    // Redirect based on role after successful registration
+                    setTimeout(() => {
+                        if (role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (role === 'mechanic') {
+                            window.location.href = 'mechanic-pending.html';
+                        } else if (role === 'station_owner') {
+                            window.location.href = 'station-owner-dashboard.html';
+                        } else {
+                            window.location.href = 'user-request-dashboard.html';
+                        }
+                    }, 2000);
+                } else {
+                    showError(data.message || 'Invalid OTP');
+                }
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                showError('Verification failed. Please try again.');
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Verify OTP';
+            }
+        };
+
+        // Resend OTP
+        window.resendOTP = async function() {
+            if (timeLeft > 0 && timeLeft < 600) {
+                showError('Please wait for the current OTP to expire');
+                return;
+            }
+
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/resend-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: registrationEmail })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('New OTP sent successfully!');
+                    startTimer(600);
+                    
+                    // Clear OTP inputs
+                    for (let i = 1; i <= 6; i++) {
+                        document.getElementById(`otp${i}`).value = '';
+                    }
+                    document.getElementById('otp1').focus();
+                } else {
+                    showError(data.message || 'Failed to resend OTP');
+                    resendBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Resend OTP error:', error);
+                showError('Failed to resend OTP');
+                resendBtn.disabled = false;
+            }
+        };
+
+        // Google Sign-In
+        window.handleGoogleSignIn = function() {
+            showToast('Initiating Google Sign-In...', 'info');
+            
+            setTimeout(() => {
+                const mockGoogleUser = {
+                    email: 'user@gmail.com',
+                    name: 'Google User',
+                    picture: 'https://lh3.googleusercontent.com/a/default-user'
+                };
+                
+                simulateGoogleAuth(mockGoogleUser);
+            }, 1000);
+        };
+
+        async function simulateGoogleAuth(userData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/google`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        credential: 'mock-google-token',
+                        user: userData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showSuccess('Google login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        const role = data.user.role;
+                        if (role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (role === 'mechanic') {
+                            if (data.user.verified) {
+                                window.location.href = 'mechanic-dashboard.html';
+                            } else {
+                                window.location.href = 'mechanic-pending.html';
+                            }
+                        } else if (role === 'station_owner') {
+                            window.location.href = 'station-owner-dashboard.html';
+                        } else {
+                            window.location.href = 'user-request-dashboard.html';
+                        }
+                    }, 1500);
+                } else {
+                    showError(data.message || 'Google login failed');
+                }
+            } catch (error) {
+                console.error('Google auth error:', error);
+                showError('Failed to authenticate with Google');
+            }
+        }
+
+        // Apple Sign-In
+        window.handleAppleSignIn = function() {
+            showToast('Apple Sign-In is coming soon!', 'info');
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Clear OTP inputs
+            for (let i = 1; i <= 6; i++) {
+                const otpInput = document.getElementById(`otp${i}`);
+                if (otpInput) otpInput.value = '';
+            }
+            
+            // Initially hide all role-specific fields
+            document.getElementById('mechanicFields').classList.add('hidden');
+            document.getElementById('stationOwnerFields').classList.add('hidden');
+            document.getElementById('adminNote').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

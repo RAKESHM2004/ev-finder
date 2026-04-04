@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Finder - Certified Mechanics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, rgba(249, 250, 251, 0.95) 0%, rgba(243, 244, 246, 0.95) 100%),
+                        url('https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+        }
+        .glass-nav { 
+            background: rgba(255, 255, 255, 0.95); 
+            -webkit-backdrop-filter: blur(10px); 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid #e5e7eb; 
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%); 
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.75rem; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            display: inline-block;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); 
+        }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            border-color: #10b981;
+            background: #f9fafb;
+        }
+        .mechanic-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            border-radius: 1rem; 
+            overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+            transition: all 0.3s;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .mechanic-card:hover { 
+            transform: translateY(-0.5rem); 
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        .glass-container {
+            background: rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-emergency {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .badge-verified {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .service-tag {
+            background: #e5e7eb;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .nav-link {
+            color: #4b5563;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            color: #059669;
+            background: #f3f4f6;
+        }
+        .nav-link.active {
+            color: #059669;
+            font-weight: 600;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">⚡</span>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EV Finder</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="stations.html" class="nav-link">Stations</a>
+                    <a href="mechanics.html" class="nav-link active">Mechanics</a>
+                    <div class="flex items-center space-x-3" id="authButtons">
+                        <!-- Auth buttons will be loaded by auth.js -->
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-gray-700 focus:outline-none" onclick="toggleMobileMenu()" title="Toggle mobile menu">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 py-4 px-4">
+            <div class="flex flex-col space-y-3">
+                <a href="stations.html" class="text-gray-700 hover:text-green-600 py-2">Stations</a>
+                <a href="mechanics.html" class="text-green-600 font-semibold py-2">Mechanics</a>
+                <a href="login.html" class="text-gray-700 hover:text-green-600 py-2">Login</a>
+                <a href="register.html" class="btn-primary text-center">Sign Up Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-32 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="glass-container text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                Certified EV Mechanics
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Connect with expert mechanics for repairs, maintenance, and emergency services
+            </p>
+        </div>
+
+        <!-- Filters -->
+        <div class="glass-container mb-8">
+            <div class="grid md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                    <input type="text" id="cityFilter" placeholder="Enter city" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Service Type</label>
+                    <select id="serviceFilter" title="Filter mechanics by service type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">All Services</option>
+                        <option value="General Maintenance">General Maintenance</option>
+                        <option value="Battery Service">Battery Service</option>
+                        <option value="Motor Repair">Motor Repair</option>
+                        <option value="Software Updates">Software Updates</option>
+                        <option value="Tire Service">Tire Service</option>
+                        <option value="Brake Service">Brake Service</option>
+                        <option value="HVAC Service">HVAC Service</option>
+                        <option value="Emergency Repair">Emergency Repair</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Emergency</label>
+                    <select id="emergencyFilter" title="Filter mechanics by emergency availability" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">All</option>
+                        <option value="true">24/7 Emergency Available</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="w-full btn-primary">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mechanics Grid -->
+        <div id="mechanicsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading Spinner -->
+            <div class="col-span-3 text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+                <p class="mt-4 text-gray-600 text-lg">Loading mechanics...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 EV Finder. All rights reserved. Powered by clean energy.</p>
+        </div>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-4">Contact Mechanic</h3>
+            <p class="text-gray-600 mb-6">This feature will be available soon! You'll be able to:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-600 mb-6">
+                <li>Send direct messages</li>
+                <li>Schedule appointments</li>
+                <li>Get instant quotes</li>
+            </ul>
+            <button onclick="closeContactModal()" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+                Got it
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let allMechanics = [];
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification`;
+            toast.style.borderLeftColor = type === 'success' ? '#10b981' : '#ef4444';
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Load mechanics from API
+        async function loadMechanics() {
+            const container = document.getElementById('mechanicsList');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/mechanics`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load mechanics');
+                }
+                
+                allMechanics = await response.json();
+                console.log('Loaded mechanics:', allMechanics); // Debug log
+                
+                if (allMechanics && allMechanics.length > 0) {
+                    displayMechanics(allMechanics);
+                } else {
+                    container.innerHTML = `
+                        <div class="col-span-3 text-center py-12">
+                            <div class="text-gray-400 text-6xl mb-4">🔧</div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">No Mechanics Found</h3>
+                            <p class="text-gray-600">No mechanics available at the moment. Please check back later.</p>
+                            <button onclick="loadMechanics()" class="mt-4 btn-primary">
+                                <i class="fas fa-sync-alt mr-2"></i>Refresh
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading mechanics:', error);
+                container.innerHTML = `
+                    <div class="col-span-3 text-center py-12">
+                        <div class="text-red-500 text-6xl mb-4">⚠️</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Connection Error</h3>
+                        <p class="text-gray-600">Unable to load mechanics. Please make sure the backend server is running on port 5000.</p>
+                        <button onclick="loadMechanics()" class="mt-4 btn-primary">
+                            <i class="fas fa-sync-alt mr-2"></i>Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Display mechanics
+        function displayMechanics(mechanics) {
+            const container = document.getElementById('mechanicsList');
+            
+            container.innerHTML = mechanics.map(mechanic => `
+                <div class="mechanic-card">
+                    <div class="p-6 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">${mechanic.name}</h3>
+                                <p class="text-green-600 font-semibold">${mechanic.shopName || 'Independent Mechanic'}</p>
+                            </div>
+                            ${mechanic.emergencyService ? `
+                                <span class="badge badge-emergency">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>24/7
+                                </span>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="space-y-3 mb-4">
+                            <p class="text-gray-600 flex items-start">
+                                <i class="fas fa-map-marker-alt text-green-600 w-5 mt-1 mr-2"></i>
+                                <span>${mechanic.address?.street || 'Address not available'}, ${mechanic.address?.city || ''}</span>
+                            </p>
+                            <p class="text-gray-600 flex items-center">
+                                <i class="fas fa-phone text-green-600 w-5 mr-2"></i>
+                                ${mechanic.phone || 'Not provided'}
+                            </p>
+                            <p class="text-gray-600 flex items-center">
+                                <i class="fas fa-envelope text-green-600 w-5 mr-2"></i>
+                                ${mechanic.email || 'Not provided'}
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="flex flex-wrap gap-2">
+                                ${mechanic.services?.map(service => `
+                                    <span class="service-tag">${service}</span>
+                                `).join('') || 'No services listed'}
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-green-600 font-bold text-lg flex items-center">
+                                    <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                    ${mechanic.rating?.toFixed(1) || '0.0'}
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    <i class="fas fa-briefcase mr-1"></i>
+                                    ${mechanic.experience || 0}+ years
+                                </span>
+                            </div>
+                            ${mechanic.verified ? `
+                                <span class="badge badge-verified">
+                                    <i class="fas fa-check-circle mr-1"></i> Verified
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="px-6 pb-6">
+                        <button onclick="contactMechanic('${mechanic._id}')" 
+                                class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+                            <i class="fas fa-envelope mr-2"></i>Contact Mechanic
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const city = document.getElementById('cityFilter').value.toLowerCase().trim();
+            const service = document.getElementById('serviceFilter').value;
+            const emergency = document.getElementById('emergencyFilter').value;
+
+            let filtered = allMechanics;
+
+            if (city) {
+                filtered = filtered.filter(m => 
+                    m.address?.city?.toLowerCase().includes(city) || 
+                    m.address?.street?.toLowerCase().includes(city)
+                );
+            }
+
+            if (service) {
+                filtered = filtered.filter(m => 
+                    m.services?.includes(service)
+                );
+            }
+
+            if (emergency === 'true') {
+                filtered = filtered.filter(m => m.emergencyService === true);
+            }
+
+            if (filtered.length === 0) {
+                document.getElementById('mechanicsList').innerHTML = `
+                    <div class="col-span-3 text-center py-12">
+                        <div class="text-gray-400 text-6xl mb-4">🔧</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">No Mechanics Found</h3>
+                        <p class="text-gray-600">Try adjusting your filters or check back later.</p>
+                        <button onclick="displayMechanics(allMechanics)" class="mt-4 btn-secondary">
+                            Clear Filters
+                        </button>
+                    </div>
+                `;
+            } else {
+                displayMechanics(filtered);
+            }
+        }
+
+        // Contact mechanic
+        function contactMechanic(id) {
+            document.getElementById('contactModal').classList.remove('hidden');
+            document.getElementById('contactModal').classList.add('flex');
+        }
+
+        // Close contact modal
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.add('hidden');
+            document.getElementById('contactModal').classList.remove('flex');
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('cityFilter').value = '';
+            document.getElementById('serviceFilter').value = '';
+            document.getElementById('emergencyFilter').value = '';
+            displayMechanics(allMechanics);
+        }
+
+        // Check authentication and update auth buttons
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (!authButtons) return;
+            
+            if (token) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const user = await response.json();
+                        authButtons.innerHTML = `
+                            <a href="user-request-dashboard.html" class="px-5 py-2 text-green-600 font-semibold hover:bg-green-50 rounded-lg transition">
+                                <i class="fas fa-user mr-2"></i>${user.name}
+                            </a>
+                            <button onclick="logout()" class="btn-secondary">
+                                Logout
+                            </button>
+                        `;
+                    } else {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        authButtons.innerHTML = `
+                            <a href="login.html" class="px-5 py-2 text-gray-700 font-semibold hover:text-green-600 transition-colors rounded-lg hover:bg-gray-100">
+                                Login
+                            </a>
+                            <a href="register.html" class="btn-primary">
+                                Sign Up Free
+                            </a>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            } else {
+                authButtons.innerHTML = `
+                    <a href="login.html" class="px-5 py-2 text-gray-700 font-semibold hover:text-green-600 transition-colors rounded-lg hover:bg-gray-100">
+                        Login
+                    </a>
+                    <a href="register.html" class="btn-primary">
+                        Sign Up Free
+                    </a>
+                `;
+            }
+        }
+
+        // Logout function
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            showToast('Logged out successfully');
+            checkAuth();
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadMechanics();
+        });
+    </script>
+<script src="js/ai-features.js"></script>
+</body>
+</html>

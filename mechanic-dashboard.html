@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanic Dashboard - EV Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-busy {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-offline {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-accepted {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-in-progress {
+            background: #cffafe;
+            color: #0891b2;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .nav-link {
+            color: #4b5563;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: #f59e0b;
+            background: #f3f4f6;
+        }
+
+        .nav-link.active {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            border-color: #f59e0b;
+            background: #f9fafb;
+        }
+
+        .service-tag {
+            background: #e5e7eb;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin: 0.125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .service-tag:hover {
+            background: #d1d5db;
+        }
+
+        .fault-request-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: white;
+            margin-bottom: 1rem;
+        }
+
+        .fault-request-card:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .fault-request-card.pending {
+            border-left: 4px solid #f59e0b;
+            background: #fff9e6;
+        }
+
+        .fault-request-card.accepted {
+            border-left: 4px solid #3b82f6;
+            background: #e6f7e6;
+        }
+
+        .fault-request-card.in-progress {
+            border-left: 4px solid #06b6d4;
+            background: #e6f0ff;
+        }
+
+        .fault-request-card.completed {
+            border-left: 4px solid #10b981;
+            background: #f0f0f0;
+            opacity: 0.8;
+        }
+
+        .fault-request-card.cancelled {
+            border-left: 4px solid #ef4444;
+            background: #ffe6e6;
+            opacity: 0.7;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #f59e0b;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-notification.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f59e0b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-tab.active {
+            background: #f59e0b;
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .filter-tab:hover {
+            background: #e5e7eb;
+        }
+
+        .filter-tab.active:hover {
+            background: #d97706;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .search-input:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            outline: none;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            padding-bottom: 1.5rem;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -0.5rem;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: #f59e0b;
+            border: 2px solid white;
+        }
+
+        .timeline-item.pending::before { background: #f59e0b; }
+        .timeline-item.accepted::before { background: #3b82f6; }
+        .timeline-item.in-progress::before { background: #06b6d4; }
+        .timeline-item.completed::before { background: #10b981; }
+        .timeline-item.cancelled::before { background: #ef4444; }
+
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border: 2px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .debug-panel.visible {
+            display: block;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .debug-title {
+            font-weight: bold;
+            color: #f59e0b;
+        }
+
+        .debug-close {
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .debug-close:hover {
+            color: #ef4444;
+        }
+
+        .debug-log {
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .debug-log-entry.error {
+            color: #ef4444;
+        }
+
+        .debug-log-entry.success {
+            color: #10b981;
+        }
+
+        .debug-log-entry.info {
+            color: #3b82f6;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .debug-toggle:hover {
+            background: #d97706;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">⚡</span>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">EV Finder</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="stations.html" class="nav-link">Stations</a>
+                    <a href="mechanics.html" class="nav-link">Mechanics</a>
+                    <a href="mechanic-dashboard.html" class="nav-link active">Dashboard</a>
+                    <div class="flex items-center space-x-3" id="authButtons">
+                        <!-- Auth buttons will be loaded dynamically -->
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-gray-700 focus:outline-none" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 py-4 px-4">
+            <div class="flex flex-col space-y-3">
+                <a href="index.html" class="text-gray-700 hover:text-yellow-600 py-2">Home</a>
+                <a href="stations.html" class="text-gray-700 hover:text-yellow-600 py-2">Stations</a>
+                <a href="mechanics.html" class="text-gray-700 hover:text-yellow-600 py-2">Mechanics</a>
+                <a href="mechanic-dashboard.html" class="text-yellow-600 font-semibold py-2">Dashboard</a>
+                <div id="mobileAuthButtons"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-24 pb-12 px-4 max-w-7xl mx-auto">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2" id="welcomeMessage">Welcome back, <span id="userName">Mechanic</span>!</h1>
+                    <p class="text-yellow-100">Manage customer service requests and track your earnings</p>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-full p-4">
+                    <i class="fas fa-user-tie text-4xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Requests</p>
+                        <p class="text-3xl font-bold" id="totalRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Pending</p>
+                        <p class="text-3xl font-bold" id="pendingRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">In Progress</p>
+                        <p class="text-3xl font-bold" id="inProgressRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cog fa-spin text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Completed</p>
+                        <p class="text-3xl font-bold" id="completedRequests">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="dashboard-card mb-6">
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="md:col-span-2">
+                    <input type="text" id="searchRequests" placeholder="Search by customer name, vehicle, or service..." class="search-input">
+                </div>
+                <div>
+                    <select id="statusFilter" class="search-input" onchange="filterRequests()">
+                        <option value="all">All Status</option>
+                        <option value="pending">⏳ Pending</option>
+                        <option value="accepted">✅ Accepted</option>
+                        <option value="in-progress">🔄 In Progress</option>
+                        <option value="completed">✔️ Completed</option>
+                        <option value="cancelled">❌ Cancelled</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button class="filter-tab active" onclick="filterByStatus('all')">All Requests</button>
+            <button class="filter-tab" onclick="filterByStatus('pending')">⏳ Pending</button>
+            <button class="filter-tab" onclick="filterByStatus('accepted')">✅ Accepted</button>
+            <button class="filter-tab" onclick="filterByStatus('in-progress')">🔄 In Progress</button>
+            <button class="filter-tab" onclick="filterByStatus('completed')">✔️ Completed</button>
+            <button class="filter-tab" onclick="filterByStatus('cancelled')">❌ Cancelled</button>
+        </div>
+
+        <!-- Requests List -->
+        <div class="dashboard-card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold flex items-center">
+                    <i class="fas fa-tools text-yellow-600 mr-2"></i>
+                    Customer Service Requests
+                </h2>
+                <span class="text-sm bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full" id="requestsCount">0 total</span>
+            </div>
+            
+            <div id="requestsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                <!-- Requests will be loaded here -->
+                <div class="text-center py-8 text-gray-500">
+                    <div class="loading-spinner mx-auto"></div>
+                    <p class="mt-4">Loading requests...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile and Earnings Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <!-- Profile Card -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-id-card text-yellow-600 mr-2"></i>
+                    My Profile
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user-tie text-3xl text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg" id="mechanicName">Loading...</h3>
+                            <p class="text-sm text-gray-600" id="shopName">Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Status</span>
+                            <select id="availabilityStatus" onchange="updateAvailability()" class="text-sm border rounded-lg px-2 py-1">
+                                <option value="available">🟢 Available</option>
+                                <option value="busy">🔴 Busy</option>
+                                <option value="offline">⚫ Offline</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Experience</span>
+                            <span class="font-semibold" id="experience">0 years</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Rating</span>
+                            <span class="font-semibold text-yellow-600" id="mechanicRating">0.0 ⭐</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Completed Jobs</span>
+                            <span class="font-semibold" id="completedJobs">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Card -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-tools text-yellow-600 mr-2"></i>
+                    My Services
+                </h2>
+                <div id="servicesList" class="flex flex-wrap gap-2 mb-4">
+                    <!-- Services will be loaded here -->
+                    <div class="text-gray-500">Loading services...</div>
+                </div>
+            </div>
+
+            <!-- Earnings Card -->
+            <div class="dashboard-card bg-gradient-to-br from-yellow-50 to-yellow-100">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-dollar-sign text-yellow-600 mr-2"></i>
+                    Earnings
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Today</span>
+                        <span class="font-bold text-lg" id="todayEarnings">$0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">This Week</span>
+                        <span class="font-bold text-lg" id="weekEarnings">$0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">This Month</span>
+                        <span class="font-bold text-lg" id="monthEarnings">$0</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">Total</span>
+                            <span class="font-bold text-xl text-green-600" id="totalEarnings">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div id="requestModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Request Details</h3>
+                <button onclick="closeRequestModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="requestDetails" class="space-y-4">
+                <!-- Details will be filled dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 px-4 mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 EV Finder. All rights reserved. Powered by clean energy.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        // Debug logging
+        let debugLogs = [];
+        
+        function addDebugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.push({ text: logEntry, type });
+            
+            // Keep only last 50 logs
+            if (debugLogs.length > 50) {
+                debugLogs.shift();
+            }
+            
+            updateDebugPanel();
+            console.log(`[DEBUG] ${logEntry}`);
+        }
+
+        function updateDebugPanel() {
+            const container = document.getElementById('debugLogs');
+            if (!container) return;
+            
+            container.innerHTML = debugLogs.map(log => 
+                `<div class="debug-log-entry ${log.type}">${log.text}</div>`
+            ).join('');
+            
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            panel.classList.toggle('visible');
+        }
+
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        addDebugLog(`User: ${user.name || 'Unknown'} (${user.email || 'No email'})`);
+        addDebugLog(`Role: ${user.role || 'Unknown'}`);
+        addDebugLog(`Verified: ${user.verified || false}`);
+        
+        if (!token) {
+            addDebugLog('No token found, redirecting to login', 'error');
+            window.location.href = 'login.html';
+        }
+
+        // Check if user is mechanic and verified
+        if (user.role !== 'mechanic') {
+            addDebugLog(`User is not a mechanic (role: ${user.role}), redirecting`, 'error');
+            if (user.role === 'admin') {
+                window.location.href = 'admin-dashboard.html';
+            } else if (user.role === 'station_owner') {
+                window.location.href = 'station-owner-dashboard.html';
+            } else {
+                window.location.href = 'user-request-dashboard.html';
+            }
+        }
+
+        if (!user.verified) {
+            addDebugLog('Mechanic not verified, redirecting to pending', 'error');
+            window.location.href = 'mechanic-pending.html';
+        }
+
+        // State variables
+        let mechanicId = null;
+        let mechanicData = null;
+        let allRequests = [];
+        let filteredRequests = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            addDebugLog('Page loaded, initializing dashboard');
+            document.getElementById('userName').textContent = user.name || 'Mechanic';
+            await getMechanicId();
+            await loadMechanicData();
+            await loadRequests();
+            updateAuthButtons();
+        });
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            addDebugLog(`Toast: ${message} (${type})`, type);
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-yellow-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Get mechanic ID from email
+        async function getMechanicId() {
+            addDebugLog(`Fetching mechanic profile for email: ${user.email}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}/mechanics?email=${user.email}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                addDebugLog(`Mechanic API response status: ${response.status}`);
+                
+                if (!response.ok) throw new Error('Failed to fetch mechanic data');
+                
+                const mechanics = await response.json();
+                addDebugLog(`Found ${mechanics.length} mechanics with email ${user.email}`);
+                
+                const mechanic = mechanics.find(m => m.email === user.email);
+                
+                if (mechanic) {
+                    mechanicId = mechanic._id;
+                    mechanicData = mechanic;
+                    addDebugLog(`✅ Mechanic ID found: ${mechanicId}`, 'success');
+                    addDebugLog(`Shop: ${mechanic.shopName}, Experience: ${mechanic.experience}`);
+                } else {
+                    addDebugLog('❌ Mechanic profile not found in database', 'error');
+                    showToast('Mechanic profile not found. Please contact admin.', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error fetching mechanic ID: ${error.message}`, 'error');
+                showToast('Failed to load mechanic profile', 'error');
+            }
+        }
+
+        // Load mechanic data
+        async function loadMechanicData() {
+            addDebugLog('Loading mechanic data');
+            try {
+                if (!mechanicData) {
+                    addDebugLog('No mechanic data found, using fallback', 'warn');
+                    // Use sample data as fallback
+                    mechanicData = {
+                        name: user.name,
+                        shopName: user.shopName || 'EV Expert Garage',
+                        experience: 5,
+                        services: [
+                            { name: 'General Maintenance', price: 50, active: true },
+                            { name: 'Battery Service', price: 120, active: true },
+                            { name: 'Motor Repair', price: 200, active: true },
+                            { name: 'Software Updates', price: 80, active: true }
+                        ],
+                        rating: 4.8,
+                        totalEarnings: 1250,
+                        completedJobs: 47,
+                        availability: 'available'
+                    };
+                }
+                
+                updateProfileDisplay();
+                updateServicesDisplay();
+                addDebugLog('Mechanic data loaded successfully', 'success');
+                
+            } catch (error) {
+                addDebugLog(`Error loading mechanic data: ${error.message}`, 'error');
+            }
+        }
+
+        // Update profile display
+        function updateProfileDisplay() {
+            document.getElementById('mechanicName').textContent = mechanicData.name;
+            document.getElementById('shopName').textContent = mechanicData.shopName;
+            document.getElementById('experience').textContent = (mechanicData.experience || 0) + ' years';
+            document.getElementById('mechanicRating').textContent = (mechanicData.rating || 4.5).toFixed(1) + ' ⭐';
+            document.getElementById('completedJobs').textContent = mechanicData.completedJobs || 0;
+            document.getElementById('availabilityStatus').value = mechanicData.availability || 'available';
+        }
+
+        // Update services display
+        function updateServicesDisplay() {
+            const activeServices = mechanicData.services?.filter(s => s.active) || [];
+            document.getElementById('servicesList').innerHTML = activeServices.map(s => 
+                `<span class="service-tag">${s.name} ($${s.price})</span>`
+            ).join('');
+            addDebugLog(`Displayed ${activeServices.length} services`);
+        }
+
+        // Load requests from backend
+        async function loadRequests() {
+            if (!mechanicId) {
+                addDebugLog('Waiting for mechanic ID...', 'warn');
+                setTimeout(() => loadRequests(), 1000);
+                return;
+            }
+
+            addDebugLog(`Fetching requests for mechanic ID: ${mechanicId}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}/requests/mechanic/${mechanicId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                addDebugLog(`Requests API response status: ${response.status}`);
+                
+                if (!response.ok) throw new Error('Failed to load requests');
+                
+                allRequests = await response.json();
+                addDebugLog(`Loaded ${allRequests.length} requests`, 'success');
+                
+                if (allRequests.length > 0) {
+                    addDebugLog(`First request: ${allRequests[0].userName} - ${allRequests[0].status}`);
+                    addDebugLog(`Provider ID in request: ${allRequests[0].providerId}`);
+                    addDebugLog(`Current mechanic ID: ${mechanicId}`);
+                    
+                    // Check if provider IDs match
+                    const matches = allRequests.filter(r => r.providerId === mechanicId).length;
+                    addDebugLog(`${matches} out of ${allRequests.length} requests have matching provider ID`);
+                }
+                
+                filterRequests();
+                calculateEarnings();
+                
+            } catch (error) {
+                addDebugLog(`Error loading requests: ${error.message}`, 'error');
+                document.getElementById('requestsList').innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                        <p>Failed to load requests</p>
+                        <button onclick="loadRequests()" class="mt-4 btn-secondary">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Filter requests based on status and search
+        function filterRequests() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchInput = document.getElementById('searchRequests').value.toLowerCase();
+            
+            filteredRequests = allRequests.filter(request => {
+                // Status filter
+                if (statusFilter !== 'all' && request.status !== statusFilter) {
+                    return false;
+                }
+                
+                // Search filter
+                if (searchInput) {
+                    const searchable = [
+                        request.userName,
+                        request.vehicle?.make,
+                        request.vehicle?.model,
+                        request.service,
+                        request.notes
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    
+                    return searchable.includes(searchInput);
+                }
+                
+                return true;
+            });
+            
+            addDebugLog(`Filtered requests: ${filteredRequests.length} (status: ${statusFilter}, search: "${searchInput || 'none'}")`);
+            displayRequests();
+            updateStats();
+        }
+
+        // Display requests
+        function displayRequests() {
+            const container = document.getElementById('requestsList');
+            
+            document.getElementById('requestsCount').textContent = filteredRequests.length + ' total';
+            
+            if (filteredRequests.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><p>No requests found</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredRequests.map(request => {
+                const providerMatch = request.providerId === mechanicId;
+                const matchIndicator = providerMatch ? '✅' : '❌';
+                
+                return `
+                <div class="fault-request-card ${request.status}" onclick="showRequestDetails('${request._id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="status-badge status-${request.status} text-xs">
+                                    ${formatStatus(request.status)}
+                                </span>
+                                <span class="text-xs text-gray-500">#${request.requestId || 'N/A'}</span>
+                                <span class="text-xs ${providerMatch ? 'text-green-600' : 'text-red-600'}" title="Provider ID match">
+                                    ${matchIndicator}
+                                </span>
+                            </div>
+                            <h4 class="font-semibold text-lg">${request.userName}</h4>
+                            <p class="text-sm text-gray-600">${request.vehicle?.make || ''} ${request.vehicle?.model || ''} • ${request.service}</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-gray-700 mb-2 line-clamp-2">📝 ${request.notes || 'No description'}</p>
+                    
+                    <div class="grid grid-cols-2 gap-2 text-sm mb-2">
+                        <div>
+                            <span class="text-gray-500">Date:</span>
+                            <span class="ml-1">${new Date(request.date).toLocaleDateString()}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Time:</span>
+                            <span class="ml-1">${request.time}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Price:</span>
+                            <span class="ml-1 text-green-600">$${request.price}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Requested:</span>
+                            <span class="ml-1">${new Date(request.requestTime).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 mt-3" onclick="event.stopPropagation()">
+                        ${request.status === 'pending' ? `
+                            <button onclick="updateRequestStatus('${request._id}', 'accepted')" class="flex-1 bg-green-600 text-white text-sm py-2 rounded hover:bg-green-700">
+                                <i class="fas fa-check mr-1"></i>Accept
+                            </button>
+                            <button onclick="updateRequestStatus('${request._id}', 'cancelled')" class="flex-1 bg-red-500 text-white text-sm py-2 rounded hover:bg-red-600">
+                                <i class="fas fa-times mr-1"></i>Decline
+                            </button>
+                        ` : ''}
+                        ${request.status === 'accepted' ? `
+                            <button onclick="updateRequestStatus('${request._id}', 'in-progress')" class="flex-1 bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700">
+                                <i class="fas fa-play mr-1"></i>Start
+                            </button>
+                        ` : ''}
+                        ${request.status === 'in-progress' ? `
+                            <button onclick="updateRequestStatus('${request._id}', 'completed')" class="flex-1 bg-green-600 text-white text-sm py-2 rounded hover:bg-green-700">
+                                <i class="fas fa-check-double mr-1"></i>Complete
+                            </button>
+                        ` : ''}
+                        <button onclick="contactCustomer('${request.userPhone || ''}')" class="px-3 bg-gray-100 text-gray-600 text-sm py-2 rounded hover:bg-gray-200" title="Call Customer">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Format status for display
+        function formatStatus(status) {
+            const statusMap = {
+                'pending': '⏳ Pending',
+                'accepted': '✅ Accepted',
+                'in-progress': '🔄 In Progress',
+                'completed': '✔️ Completed',
+                'cancelled': '❌ Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Show request details
+        async function showRequestDetails(requestId) {
+            addDebugLog(`Showing details for request: ${requestId}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}/requests/${requestId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load request details');
+                
+                const request = await response.json();
+                
+                const modal = document.getElementById('requestModal');
+                const details = document.getElementById('requestDetails');
+                
+                const timelineHtml = request.timeline?.map(item => `
+                    <div class="timeline-item ${item.status}">
+                        <div class="font-medium">${formatStatus(item.status)}</div>
+                        <div class="text-sm text-gray-600">${new Date(item.time).toLocaleString()}</div>
+                        <div class="text-xs text-gray-500">${item.note}</div>
+                    </div>
+                `).join('') || '<p>No timeline available</p>';
+                
+                details.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="border-b pb-3">
+                            <h4 class="font-bold text-xl">${request.userName}</h4>
+                            <p class="text-sm text-gray-600">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</p>
+                            <p class="text-xs text-gray-500 mt-1">Request ID: ${request.requestId || 'N/A'}</p>
+                            <p class="text-xs text-gray-500">Provider ID: ${request.providerId}</p>
+                            <p class="text-xs text-gray-500">Your Mechanic ID: ${mechanicId}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><p class="text-xs text-gray-500">Phone</p><p class="font-medium">${request.userPhone || 'Not provided'}</p></div>
+                            <div><p class="text-xs text-gray-500">Email</p><p class="font-medium">${request.userEmail}</p></div>
+                            <div><p class="text-xs text-gray-500">Service</p><p class="font-medium">${request.service}</p></div>
+                            <div><p class="text-xs text-gray-500">Price</p><p class="font-medium text-green-600">$${request.price}</p></div>
+                            <div><p class="text-xs text-gray-500">Date & Time</p><p class="font-medium">${new Date(request.date).toLocaleDateString()} at ${request.time}</p></div>
+                            <div><p class="text-xs text-gray-500">Status</p><p class="font-medium status-${request.status}">${formatStatus(request.status)}</p></div>
+                        </div>
+                        
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Issue Description</p>
+                            <p class="text-sm bg-gray-50 p-3 rounded-lg">${request.notes || 'No description provided'}</p>
+                        </div>
+                        
+                        ${request.location ? `
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Location</p>
+                                <p class="text-sm">${request.location}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div>
+                            <p class="font-semibold mb-2">Timeline</p>
+                            <div class="space-y-1">
+                                ${timelineHtml}
+                            </div>
+                        </div>
+                        
+                        ${request.rating ? `
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-500 mb-1">Customer Rating</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-yellow-500">
+                                        ${'★'.repeat(request.rating)}${'☆'.repeat(5-request.rating)}
+                                    </div>
+                                    <span class="text-sm">${request.review || ''}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="flex gap-3 mt-4">
+                            <button onclick="contactCustomer('${request.userPhone || ''}')" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                                <i class="fas fa-phone mr-2"></i>Call Customer
+                            </button>
+                            <button onclick="closeRequestModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                modal.classList.remove('hidden');
+                
+            } catch (error) {
+                addDebugLog(`Error loading request details: ${error.message}`, 'error');
+                showToast('Failed to load request details', 'error');
+            }
+        }
+
+        // Update request status
+        async function updateRequestStatus(requestId, newStatus) {
+            addDebugLog(`Updating request ${requestId} to status: ${newStatus}`, 'info');
+            addDebugLog(`Mechanic ID: ${mechanicId}`);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/requests/${requestId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        status: newStatus,
+                        message: `Request ${newStatus} by mechanic`
+                    })
+                });
+                
+                addDebugLog(`Status update response: ${response.status}`);
+                const data = await response.json();
+                addDebugLog(`Response data: ${JSON.stringify(data)}`);
+                
+                if (response.ok) {
+                    addDebugLog(`✅ Request ${newStatus} successfully!`, 'success');
+                    showToast(`Request ${newStatus} successfully!`);
+                    await loadRequests();
+                    closeRequestModal();
+                } else {
+                    addDebugLog(`❌ Error: ${data.message || 'Unknown error'}`, 'error');
+                    showToast(data.message || 'Failed to update request', 'error');
+                }
+            } catch (error) {
+                addDebugLog(`Error updating request: ${error.message}`, 'error');
+                showToast('Failed to update request', 'error');
+            }
+        }
+
+        // Filter by status tab
+        function filterByStatus(status) {
+            currentFilter = status;
+            document.getElementById('statusFilter').value = status;
+            
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterRequests();
+        }
+
+        // Search input with debounce
+        let searchTimeout;
+        document.getElementById('searchRequests')?.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterRequests();
+            }, 500);
+        });
+
+        // Update statistics
+        function updateStats() {
+            const total = allRequests.length;
+            const pending = allRequests.filter(r => r.status === 'pending').length;
+            const inProgress = allRequests.filter(r => r.status === 'accepted' || r.status === 'in-progress').length;
+            const completed = allRequests.filter(r => r.status === 'completed').length;
+            
+            document.getElementById('totalRequests').textContent = total;
+            document.getElementById('pendingRequests').textContent = pending;
+            document.getElementById('inProgressRequests').textContent = inProgress;
+            document.getElementById('completedRequests').textContent = completed;
+            document.getElementById('totalEarnings').textContent = '$' + (mechanicData.totalEarnings || 0);
+        }
+
+        // Calculate earnings
+        function calculateEarnings() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const weekAgo = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0];
+            const monthAgo = new Date(now.setMonth(now.getMonth() - 1)).toISOString().split('T')[0];
+            
+            const todayEarnings = allRequests
+                .filter(r => r.status === 'completed' && r.date === today)
+                .reduce((sum, r) => sum + r.price, 0);
+                
+            const weekEarnings = allRequests
+                .filter(r => r.status === 'completed' && r.date >= weekAgo)
+                .reduce((sum, r) => sum + r.price, 0);
+                
+            const monthEarnings = allRequests
+                .filter(r => r.status === 'completed' && r.date >= monthAgo)
+                .reduce((sum, r) => sum + r.price, 0);
+            
+            document.getElementById('todayEarnings').textContent = '$' + todayEarnings;
+            document.getElementById('weekEarnings').textContent = '$' + weekEarnings;
+            document.getElementById('monthEarnings').textContent = '$' + monthEarnings;
+        }
+
+        // Contact customer
+        function contactCustomer(phone) {
+            if (phone) {
+                addDebugLog(`Calling customer: ${phone}`, 'info');
+                showToast(`Calling ${phone}...`, 'info');
+            } else {
+                addDebugLog('No phone number available', 'warn');
+                showToast('No phone number available', 'error');
+            }
+        }
+
+        // Update availability
+        function updateAvailability() {
+            const availability = document.getElementById('availabilityStatus').value;
+            mechanicData.availability = availability;
+            addDebugLog(`Availability updated to: ${availability}`, 'success');
+            showToast(`Status updated to ${availability}`);
+        }
+
+        // Close request modal
+        function closeRequestModal() {
+            document.getElementById('requestModal').classList.add('hidden');
+        }
+
+        // Update auth buttons
+        function updateAuthButtons() {
+            const authButtons = document.getElementById('authButtons');
+            const mobileAuthButtons = document.getElementById('mobileAuthButtons');
+            
+            if (authButtons) {
+                authButtons.innerHTML = `
+                    <span class="px-5 py-2 text-yellow-600 font-semibold">
+                        <i class="fas fa-user-tie mr-2"></i>${user.name || 'Mechanic'}
+                    </span>
+                    <button onclick="logout()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-5 py-2 rounded-lg font-semibold transition">
+                        Logout
+                    </button>
+                `;
+            }
+            
+            if (mobileAuthButtons) {
+                mobileAuthButtons.innerHTML = `
+                    <div class="flex flex-col space-y-3 pt-3 border-t border-gray-200">
+                        <span class="px-5 py-2 text-yellow-600 font-semibold text-center">
+                            <i class="fas fa-user-tie mr-2"></i>${user.name || 'Mechanic'}
+                        </span>
+                        <button onclick="logout()" class="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-5 py-2 rounded-lg font-semibold transition w-full">
+                            Logout
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Logout
+        window.logout = function() {
+            addDebugLog('Logging out', 'info');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>

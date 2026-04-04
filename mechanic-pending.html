@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Verification - EV Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .pending-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 500px;
+            width: 100%;
+            padding: 2.5rem;
+            text-align: center;
+        }
+        .icon-container {
+            width: 100px;
+            height: 100px;
+            background: #fef3c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .icon-container i {
+            font-size: 3rem;
+            color: #d97706;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .mechanic-email {
+            background: #f3f4f6;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        .btn-secondary:hover {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="pending-card">
+        <div class="icon-container">
+            <i class="fas fa-clock"></i>
+        </div>
+        <h1>Verification in Progress</h1>
+        <p class="text-gray-600 mb-4">Your mechanic account is being reviewed</p>
+        <div class="mechanic-email" id="mechanicEmail">
+            <span id="emailDisplay">Loading...</span>
+        </div>
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-left mb-4">
+            <p class="text-yellow-700">⏳ Your account is pending admin verification. This typically takes 24-48 hours.</p>
+        </div>
+        <button onclick="checkStatus()" class="btn-primary">
+            Check Status
+        </button>
+        <a href="index.html" class="btn-secondary">
+            Return to Home
+        </a>
+    </div>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('emailDisplay').textContent = user.email || 'your-email@example.com';
+        
+        function checkStatus() {
+            alert('Your account is still pending verification. Please check back later.');
+        }
+    </script>
+</body>
+</html>

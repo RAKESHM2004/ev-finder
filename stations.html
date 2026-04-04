@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Finder - Charging Stations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, rgba(249, 250, 251, 0.95) 0%, rgba(243, 244, 246, 0.95) 100%),
+                        url('https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+        }
+        .glass-nav { 
+            background: rgba(255, 255, 255, 0.95); 
+            -webkit-backdrop-filter: blur(10px); 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid #e5e7eb; 
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%); 
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.75rem; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); 
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            border-color: #10b981;
+            background: #f9fafb;
+        }
+        .station-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            border-radius: 1rem; 
+            overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+            transition: all 0.3s;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .station-card:hover { 
+            transform: translateY(-0.5rem); 
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        .glass-container {
+            background: rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-maintenance {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-closed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .charger-tag {
+            background: #e5e7eb;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .nav-link {
+            color: #4b5563;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            color: #059669;
+            background: #f3f4f6;
+        }
+        .nav-link.active {
+            color: #059669;
+            font-weight: 600;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .filter-select, .search-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            width: 100%;
+            background: white;
+        }
+        .filter-select:focus, .search-input:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .station-marker {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            cursor: pointer;
+        }
+        .user-marker {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        .info-marker {
+            cursor: pointer;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">⚡</span>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EV Finder</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="stations.html" class="nav-link active">Stations</a>
+                    <a href="mechanics.html" class="nav-link">Mechanics</a>
+                    <div class="flex items-center space-x-3" id="authButtons">
+                        <!-- Auth buttons will be loaded dynamically -->
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-gray-700 focus:outline-none" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 py-4 px-4">
+            <div class="flex flex-col space-y-3">
+                <a href="stations.html" class="text-green-600 font-semibold py-2">Stations</a>
+                <a href="mechanics.html" class="text-gray-700 hover:text-green-600 py-2">Mechanics</a>
+                <a href="login.html" class="text-gray-700 hover:text-green-600 py-2">Login</a>
+                <a href="register.html" class="btn-primary text-center">Sign Up Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-32 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="glass-container text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                EV Charging Stations
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Find the nearest charging stations with real-time availability and pricing
+            </p>
+        </div>
+
+        <!-- Map Section -->
+        <div class="glass-container mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Find Stations Near You</h2>
+                <button onclick="centerOnUserLocation()" class="btn-secondary text-sm">
+                    <i class="fas fa-location-arrow mr-2"></i>Center on My Location
+                </button>
+            </div>
+            <div id="map"></div>
+            <div id="mapStatus" class="mt-2 text-sm text-gray-500 text-center">
+                <i class="fas fa-info-circle mr-1"></i>
+                Click on any marker to see station details
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="glass-container mb-8">
+            <h2 class="text-xl font-bold mb-4">Filter Stations</h2>
+            <div class="grid md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                    <input type="text" id="cityFilter" placeholder="Enter city" 
+                           class="search-input">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Charger Type</label>
+                    <select id="chargerFilter" class="filter-select" aria-label="Filter by charger type">
+                        <option value="">All Types</option>
+                        <option value="Level 2">Level 2</option>
+                        <option value="DC Fast Charging">DC Fast Charging</option>
+                        <option value="Tesla Supercharger">Tesla Supercharger</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Min Rating</label>
+                    <select id="ratingFilter" class="filter-select">
+                        <option value="0">Any</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="4.5">4.5+ Stars</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end mt-4 gap-2">
+                <button onclick="clearFilters()" class="btn-secondary">
+                    <i class="fas fa-times mr-2"></i>Clear Filters
+                </button>
+                <button onclick="applyFilters()" class="btn-primary">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Count -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">
+                Available Stations <span id="stationCount" class="text-green-600 ml-2">0</span>
+            </h2>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Sort by:</label>
+                <select id="sortFilter" class="border rounded-lg px-3 py-2 text-sm" onchange="applyFilters()">
+                    <option value="distance">Nearest First</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Stations Grid -->
+        <div id="stationsList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading Spinner -->
+            <div class="col-span-3 text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+                <p class="mt-4 text-gray-600 text-lg">Loading charging stations...</p>
+            </div>
+        </div>
+
+        <!-- Load More Button -->
+        <div class="text-center mt-8" id="loadMoreContainer">
+            <button onclick="loadMoreStations()" class="btn-secondary" id="loadMoreBtn">
+                <i class="fas fa-plus mr-2"></i>Load More Stations
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 EV Finder. All rights reserved. Powered by clean energy.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let allStations = [];
+        let filteredStations = [];
+        let map;
+        let userMarker;
+        let stationMarkers = [];
+        let currentPage = 1;
+        const stationsPerPage = 6;
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification`;
+            toast.style.borderLeftColor = type === 'success' ? '#10b981' : '#ef4444';
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-xl"></i>
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Initialize map
+        function initMap() {
+            // Default center (India - Chennai)
+            map = L.map('map').setView([13.0827, 80.2707], 10);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        addUserMarker(latitude, longitude);
+                    },
+                    (error) => {
+                        console.log('Using default location');
+                    }
+                );
+            }
+        }
+
+        // Center map on user location
+        function centerOnUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        map.setView([latitude, longitude], 12);
+                        addUserMarker(latitude, longitude);
+                        showToast('Centered on your location');
+                    },
+                    (error) => {
+                        showToast('Unable to get your location', 'error');
+                    }
+                );
+            } else {
+                showToast('Geolocation is not supported by your browser', 'error');
+            }
+        }
+
+        // Add user marker
+        function addUserMarker(lat, lng) {
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                userMarker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'user-marker',
+                        html: '<div style="background-color: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).addTo(map).bindPopup('<b>You are here</b>');
+            }
+        }
+
+        // Load stations from API
+        async function loadStations() {
+            const container = document.getElementById('stationsList');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/stations`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load stations');
+                }
+                
+                allStations = await response.json();
+                console.log('Loaded stations:', allStations);
+                
+                if (allStations && allStations.length > 0) {
+                    filteredStations = [...allStations];
+                    updateStationCount();
+                    displayStations();
+                    
+                    // Check if any stations have valid coordinates
+                    const stationsWithCoords = allStations.filter(s => s.location?.coordinates);
+                    if (stationsWithCoords.length === 0) {
+                        showToast('No stations with location coordinates found', 'info');
+                        addInfoMarker();
+                    } else {
+                        addStationMarkers();
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="col-span-3">
+                            <div class="empty-state">
+                                <div class="text-gray-400 text-7xl mb-4">🔌</div>
+                                <h3 class="text-3xl font-bold text-gray-800 mb-3">No Stations Found</h3>
+                                <p class="text-gray-600 text-lg mb-6">No charging stations are available in the database yet.</p>
+                                <p class="text-gray-500 mb-4">Please check back later or add stations through the admin panel.</p>
+                                <button onclick="loadStations()" class="btn-primary">
+                                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('loadMoreContainer').classList.add('hidden');
+                    addInfoMarker();
+                }
+            } catch (error) {
+                console.error('Error loading stations:', error);
+                container.innerHTML = `
+                    <div class="col-span-3">
+                        <div class="empty-state">
+                            <div class="text-red-500 text-7xl mb-4">⚠️</div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-3">Connection Error</h3>
+                            <p class="text-gray-600 text-lg mb-4">Unable to connect to the backend server.</p>
+                            <p class="text-gray-500 mb-6">Please make sure the backend server is running on port 5000.</p>
+                            <button onclick="loadStations()" class="btn-primary">
+                                <i class="fas fa-sync-alt mr-2"></i>Try Again
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('loadMoreContainer').classList.add('hidden');
+            }
+        }
+
+        // Add info marker when no stations
+        function addInfoMarker() {
+            const infoMarker = L.marker([13.0827, 80.2707], {
+                icon: L.divIcon({
+                    className: 'info-marker',
+                    html: '<div style="background-color: #f59e0b; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">!</div>',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                })
+            }).addTo(map);
+            
+            infoMarker.bindPopup(`
+                <div class="p-3 text-center">
+                    <h3 class="font-bold text-lg mb-2">No Stations Found</h3>
+                    <p class="text-sm text-gray-600 mb-2">No charging stations are available in the database.</p>
+                    <p class="text-xs text-gray-500">Add stations through the admin panel to see them on the map.</p>
+                </div>
+            `).openPopup();
+
+            document.getElementById('mapStatus').innerHTML = `
+                <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
+                No stations found. Add stations through the admin panel.
+            `;
+        }
+
+        // Add station markers to map
+        function addStationMarkers() {
+            // Clear existing markers
+            stationMarkers.forEach(marker => map.removeLayer(marker));
+            stationMarkers = [];
+
+            const stationsWithCoords = allStations.filter(s => s.location?.coordinates);
+            
+            if (stationsWithCoords.length === 0) {
+                addInfoMarker();
+                return;
+            }
+
+            stationsWithCoords.forEach(station => {
+                const [lng, lat] = station.location.coordinates;
+                
+                const marker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'station-marker',
+                        html: `<div style="background-color: #10b981; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            ⚡
+                            ${station.chargers?.length > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: white; color: #10b981; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; border: 2px solid #10b981;">${station.chargers.length}</span>` : ''}
+                        </div>`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
+                    })
+                }).addTo(map);
+
+                marker.on('click', () => {
+                    viewStationDetails(station._id);
+                });
+
+                // Create popup content
+                const chargerTypes = station.chargers?.map(c => c.type).join(', ') || 'No chargers';
+                const popupContent = `
+                    <div class="p-3" style="min-width: 200px;">
+                        <h3 class="font-bold text-lg mb-1">${station.name}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${station.address || ''}, ${station.city || ''}</p>
+                        <p class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full inline-block mb-2">
+                            ⚡ ${chargerTypes}
+                        </p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="flex items-center text-yellow-500">
+                                <i class="fas fa-star mr-1"></i>
+                                ${station.rating?.toFixed(1) || '0.0'} (${station.totalRatings || 0})
+                            </span>
+                            <span class="badge ${station.status === 'active' ? 'badge-active' : station.status === 'maintenance' ? 'badge-maintenance' : 'badge-closed'}">
+                                ${station.status || 'active'}
+                            </span>
+                        </div>
+                        <button onclick="viewStationDetails('${station._id}')" 
+                                class="mt-3 w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+                            View Details
+                        </button>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                stationMarkers.push(marker);
+            });
+
+            // Fit bounds to show all markers
+            if (stationMarkers.length > 0) {
+                const group = new L.featureGroup(stationMarkers);
+                map.fitBounds(group.getBounds().pad(0.1));
+                document.getElementById('mapStatus').innerHTML = `
+                    <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                    Found ${stationMarkers.length} stations on the map. Click markers for details.
+                `;
+            }
+        }
+
+        // Display stations with pagination
+        function displayStations() {
+            const container = document.getElementById('stationsList');
+            const start = 0;
+            const end = currentPage * stationsPerPage;
+            const stationsToShow = filteredStations.slice(0, end);
+            
+            if (stationsToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-3">
+                        <div class="empty-state">
+                            <div class="text-gray-400 text-7xl mb-4">🔌</div>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-3">No Stations Found</h3>
+                            <p class="text-gray-600 text-lg mb-4">No stations match your current filters.</p>
+                            <button onclick="clearFilters()" class="btn-secondary">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('loadMoreContainer').classList.add('hidden');
+                return;
+            }
+
+            container.innerHTML = stationsToShow.map(station => `
+                <div class="station-card">
+                    <img src="${station.images?.[0] || 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800'}" 
+                         alt="${station.name}" 
+                         class="w-full h-48 object-cover"
+                         onerror="this.src='https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800'">
+                    <div class="p-6 flex-1">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-gray-800">${station.name}</h3>
+                            <span class="badge ${station.status === 'active' ? 'badge-active' : station.status === 'maintenance' ? 'badge-maintenance' : 'badge-closed'}">
+                                ${station.status || 'active'}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mb-4 flex items-start">
+                            <i class="fas fa-map-marker-alt text-green-600 mt-1 mr-2"></i>
+                            <span class="text-sm">${station.address || ''}, ${station.city || ''}</span>
+                        </p>
+                        
+                        <div class="mb-4">
+                            <div class="flex flex-wrap">
+                                ${station.chargers?.map(charger => `
+                                    <span class="charger-tag">
+                                        ⚡ ${charger.type}
+                                    </span>
+                                `).join('') || '<span class="text-gray-400 text-sm">No charger info</span>'}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="flex items-center text-yellow-500">
+                                    <i class="fas fa-star mr-1"></i>
+                                    ${station.rating?.toFixed(1) || '0.0'}
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    (${station.totalRatings || 0} reviews)
+                                </span>
+                            </div>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-plug text-green-600 mr-1"></i>
+                                ${station.chargers?.reduce((acc, c) => acc + (c.count || 0), 0) || 0} ports
+                            </span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="viewStationDetails('${station._id}')" 
+                                    class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+                                <i class="fas fa-info-circle mr-2"></i>View Details
+                            </button>
+                            <button onclick="getDirections('${station._id}')" 
+                                    class="px-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+                                    title="Get Directions">
+                                <i class="fas fa-directions"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Show/hide load more button
+            if (end >= filteredStations.length) {
+                document.getElementById('loadMoreContainer').classList.add('hidden');
+            } else {
+                document.getElementById('loadMoreContainer').classList.remove('hidden');
+            }
+        }
+
+        // Load more stations
+        function loadMoreStations() {
+            currentPage++;
+            displayStations();
+        }
+
+        // Update station count
+        function updateStationCount() {
+            document.getElementById('stationCount').textContent = filteredStations.length;
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const city = document.getElementById('cityFilter').value.toLowerCase().trim();
+            const chargerType = document.getElementById('chargerFilter').value;
+            const minRating = parseFloat(document.getElementById('ratingFilter').value);
+            const status = document.getElementById('statusFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let filtered = allStations;
+
+            // City filter
+            if (city) {
+                filtered = filtered.filter(s => 
+                    s.city?.toLowerCase().includes(city) || 
+                    s.address?.toLowerCase().includes(city)
+                );
+            }
+
+            // Charger type filter
+            if (chargerType) {
+                filtered = filtered.filter(s => 
+                    s.chargers?.some(c => c.type === chargerType)
+                );
+            }
+
+            // Rating filter
+            if (minRating > 0) {
+                filtered = filtered.filter(s => (s.rating || 0) >= minRating);
+            }
+
+            // Status filter
+            if (status) {
+                filtered = filtered.filter(s => s.status === status);
+            }
+
+            // Sorting
+            if (sortBy === 'rating') {
+                filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            } else if (sortBy === 'name') {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'distance' && navigator.geolocation) {
+                // Sort by distance if user location available
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const { latitude, longitude } = position.coords;
+                    filtered.sort((a, b) => {
+                        if (!a.location?.coordinates || !b.location?.coordinates) return 0;
+                        const distA = getDistance(latitude, longitude, a.location.coordinates[1], a.location.coordinates[0]);
+                        const distB = getDistance(latitude, longitude, b.location.coordinates[1], b.location.coordinates[0]);
+                        return distA - distB;
+                    });
+                    filteredStations = filtered;
+                    currentPage = 1;
+                    displayStations();
+                    updateStationCount();
+                }, () => {
+                    // If location access denied, sort by name as fallback
+                    filtered.sort((a, b) => a.name.localeCompare(b.name));
+                    filteredStations = filtered;
+                    currentPage = 1;
+                    displayStations();
+                    updateStationCount();
+                });
+                return;
+            }
+
+            filteredStations = filtered;
+            currentPage = 1;
+            displayStations();
+            updateStationCount();
+            
+            if (filtered.length === 0) {
+                showToast('No stations match your filters', 'info');
+            }
+        }
+
+        // Calculate distance between two points (Haversine formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('cityFilter').value = '';
+            document.getElementById('chargerFilter').value = '';
+            document.getElementById('ratingFilter').value = '0';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('sortFilter').value = 'distance';
+            
+            filteredStations = [...allStations];
+            currentPage = 1;
+            displayStations();
+            updateStationCount();
+            showToast('Filters cleared');
+        }
+
+        // View station details
+        function viewStationDetails(id) {
+            window.location.href = `station-details.html?id=${id}`;
+        }
+
+        // Get directions to station
+        function getDirections(id) {
+            const station = allStations.find(s => s._id === id);
+            if (station?.location?.coordinates) {
+                const [lng, lat] = station.location.coordinates;
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                window.open(url, '_blank');
+            } else {
+                showToast('Location not available for this station', 'error');
+            }
+        }
+
+        // Check authentication and update auth buttons
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (!authButtons) return;
+            
+            if (token) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const user = await response.json();
+                        authButtons.innerHTML = `
+                            <a href="user-request-dashboard.html" class="px-5 py-2 text-green-600 font-semibold hover:bg-green-50 rounded-lg transition">
+                                <i class="fas fa-user mr-2"></i>${user.name}
+                            </a>
+                            <button onclick="logout()" class="btn-secondary">
+                                Logout
+                            </button>
+                        `;
+                    } else {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        updateGuestButtons();
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    updateGuestButtons();
+                }
+            } else {
+                updateGuestButtons();
+            }
+        }
+
+        function updateGuestButtons() {
+            const authButtons = document.getElementById('authButtons');
+            if (authButtons) {
+                authButtons.innerHTML = `
+                    <a href="login.html" class="px-5 py-2 text-gray-700 font-semibold hover:text-green-600 transition-colors rounded-lg hover:bg-gray-100">
+                        Login
+                    </a>
+                    <a href="register.html" class="btn-primary">
+                        Sign Up Free
+                    </a>
+                `;
+            }
+        }
+
+        // Logout function
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            showToast('Logged out successfully');
+            updateGuestButtons();
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            initMap();
+            await loadStations();
+        });
+    </script>
+    <script src="js/ai-features.js"></script>
+</body>
+</html>
