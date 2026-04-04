@@ -1,4 +1,8 @@
-const API_BASE_URL = 'http://localhost:5001/api';
+// frontend/js/auth.js
+// Authentication handling for EV Finder
+
+// API_BASE_URL is now defined in config.js
+// Make sure config.js is loaded before this file
 
 // Toast notification function
 function showToast(message, type = 'success') {
@@ -77,6 +81,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                         } else {
                             window.location.href = 'mechanic-pending.html';
                         }
+                        break;
+                    case 'station_owner':
+                        window.location.href = 'station-owner-dashboard.html';
                         break;
                     default:
                         window.location.href = 'user-request-dashboard.html';
@@ -235,6 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 window.location.href = 'mechanic-pending.html';
             }
+        } else if (user.role === 'station_owner') {
+            window.location.href = 'station-owner-dashboard.html';
         } else {
             window.location.href = 'user-request-dashboard.html';
         }
