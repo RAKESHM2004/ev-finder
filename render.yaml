@@ -1,1 +1,18 @@
+# render.yaml - EV Finder Backend Configuration
+# Place this file at the root of your GitHub repository
 
+services:
+  - type: web
+    name: ev-finder-backend
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://RAKESHM2004.github.io/ev-finder
