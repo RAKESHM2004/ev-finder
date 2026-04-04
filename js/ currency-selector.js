@@ -1,9 +1,14 @@
-// Currency Selector Component for EV Finder
+/**
+ * Currency Selector Component for EV Finder
+ * Handles multi-currency display and conversion
+ */
+
 class CurrencySelector {
     constructor() {
         this.currencies = [];
         this.selectedCurrency = null;
-        this.apiBaseUrl = 'http://localhost:5000/api';
+        // Use global API_BASE_URL from config.js
+        this.apiBaseUrl = window.API_BASE_URL ? window.API_BASE_URL.replace('/api', '') : 'http://localhost:5000/api';
         this.init();
     }
 
@@ -16,7 +21,7 @@ class CurrencySelector {
 
     async loadCurrencies() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/currency`);
+            const response = await fetch(`${this.apiBaseUrl}/api/currency`);
             if (response.ok) {
                 this.currencies = await response.json();
                 console.log('✅ Currencies loaded:', this.currencies.length);
@@ -51,35 +56,25 @@ class CurrencySelector {
                 this.selectedCurrency = JSON.parse(savedCurrency);
                 console.log('📦 Loaded currency from localStorage:', this.selectedCurrency.code);
             } catch {
-                // If parsing fails, try to find by code
-                const currencyCode = savedCurrency;
-                const currency = this.currencies.find(c => c.code === currencyCode);
-                if (currency) {
-                    this.selectedCurrency = currency;
-                } else {
-                    // Default to USD
-                    this.selectedCurrency = this.currencies.find(c => c.code === 'USD') || this.currencies[0];
-                }
+                this.selectedCurrency = this.currencies.find(c => c.isDefault) || this.currencies[0];
             }
         } else {
             // Try to get default from backend
             try {
                 const token = localStorage.getItem('token');
+                const headers = {};
                 if (token) {
-                    const response = await fetch(`${this.apiBaseUrl}/currency/user-preference`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (response.ok) {
-                        const defaultCurrency = await response.json();
-                        this.selectedCurrency = defaultCurrency;
-                    } else {
-                        this.selectedCurrency = this.currencies.find(c => c.code === 'USD') || this.currencies[0];
-                    }
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                const response = await fetch(`${this.apiBaseUrl}/api/currency/user-preference`, { headers });
+                if (response.ok) {
+                    const defaultCurrency = await response.json();
+                    this.selectedCurrency = defaultCurrency;
                 } else {
-                    this.selectedCurrency = this.currencies.find(c => c.code === 'USD') || this.currencies[0];
+                    this.selectedCurrency = this.currencies.find(c => c.isDefault) || this.currencies[0];
                 }
             } catch {
-                this.selectedCurrency = this.currencies.find(c => c.code === 'USD') || this.currencies[0];
+                this.selectedCurrency = this.currencies.find(c => c.isDefault) || this.currencies[0];
             }
         }
         
@@ -143,11 +138,16 @@ class CurrencySelector {
         `;
 
         // Add event listener to the button
-        document.getElementById('currency-menu-button').addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dropdown = document.getElementById('currency-dropdown');
-            dropdown.classList.toggle('hidden');
-        });
+        const menuButton = document.getElementById('currency-menu-button');
+        if (menuButton) {
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('currency-dropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('hidden');
+                }
+            });
+        }
 
         // Close dropdown when clicking outside
         document.addEventListener('click', () => {
@@ -180,13 +180,19 @@ class CurrencySelector {
                 localStorage.setItem('preferredCurrency', JSON.stringify(currency));
                 
                 // Update display
-                document.getElementById('selected-currency-display').innerHTML = `
-                    <span class="mr-1">${symbol}</span>
-                    <span>${code}</span>
-                `;
+                const displaySpan = document.getElementById('selected-currency-display');
+                if (displaySpan) {
+                    displaySpan.innerHTML = `
+                        <span class="mr-1">${symbol}</span>
+                        <span>${code}</span>
+                    `;
+                }
                 
                 // Close dropdown
-                document.getElementById('currency-dropdown').classList.add('hidden');
+                const dropdown = document.getElementById('currency-dropdown');
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+                }
                 
                 // Trigger custom event for other components
                 window.dispatchEvent(new CustomEvent('currencyChanged', { 
@@ -203,7 +209,6 @@ class CurrencySelector {
     }
 
     showToast(message) {
-        // Check if toast container exists
         let toastContainer = document.getElementById('toast-container');
         if (!toastContainer) {
             toastContainer = document.createElement('div');
@@ -225,7 +230,7 @@ class CurrencySelector {
         }, 3000);
     }
 
-    // Helper method to convert price from USD to selected currency
+    // Convert price from USD to selected currency
     convertPrice(priceInUSD) {
         if (!this.selectedCurrency) return { value: priceInUSD, symbol: '$', code: 'USD' };
         
@@ -238,7 +243,7 @@ class CurrencySelector {
         };
     }
 
-    // Helper to convert price from any currency to USD
+    // Convert price from any currency to USD
     convertToUSD(price, fromCurrency) {
         if (!fromCurrency || !fromCurrency.exchangeRate) return price;
         return price / fromCurrency.exchangeRate;
@@ -249,13 +254,21 @@ class CurrencySelector {
         return this.selectedCurrency || { code: 'USD', symbol: '$', exchangeRate: 1, name: 'US Dollar' };
     }
 
-    // Update all prices on the page (for dynamic updates)
+    // Update all prices on the page
     updateAllPrices() {
-        // Find all price elements with data-price attribute
         document.querySelectorAll('[data-price-usd]').forEach(el => {
             const priceUSD = parseFloat(el.dataset.priceUsd);
             const converted = this.convertPrice(priceUSD);
             el.textContent = converted.formatted;
+        });
+        
+        // Also update any elements with price class
+        document.querySelectorAll('.price-amount').forEach(el => {
+            const priceUSD = parseFloat(el.dataset.priceUsd);
+            if (!isNaN(priceUSD)) {
+                const converted = this.convertPrice(priceUSD);
+                el.textContent = converted.formatted;
+            }
         });
     }
 
@@ -268,9 +281,16 @@ class CurrencySelector {
 
 // Initialize currency selector when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Small delay to ensure other scripts are loaded
+    // Small delay to ensure config.js is loaded
     setTimeout(() => {
-        window.currencySelector = new CurrencySelector();
+        if (typeof window.API_BASE_URL !== 'undefined') {
+            window.currencySelector = new CurrencySelector();
+        } else {
+            console.warn('API_BASE_URL not defined, currency selector will retry');
+            setTimeout(() => {
+                window.currencySelector = new CurrencySelector();
+            }, 500);
+        }
     }, 100);
 });
 
