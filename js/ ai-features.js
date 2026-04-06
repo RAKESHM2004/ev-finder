@@ -6,7 +6,7 @@
  */
 
 const EV_AI = (() => {
-  const API_BASE = 'http://localhost:5000/api/ai';
+  const API_BASE = (window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api') + '/ai';
   const CHAT_URL = `${API_BASE}/chat`;
   const STATION_URL = `${API_BASE}/recommend-stations`;
   const MECHANIC_URL = `${API_BASE}/find-mechanics`;
