@@ -506,20 +506,40 @@
                 }
             } catch (error) {
                 console.error('Error loading stations:', error);
-                container.innerHTML = `
-                    <div class="col-span-3">
-                        <div class="empty-state">
-                            <div class="text-red-500 text-7xl mb-4">⚠️</div>
-                            <h3 class="text-3xl font-bold text-gray-800 mb-3">Connection Error</h3>
-                            <p class="text-gray-600 text-lg mb-4">Unable to connect to the backend server.</p>
-                            <p class="text-gray-500 mb-6">Please try again in a moment (server may be waking up).</p>
-                            <button onclick="loadStations()" class="btn-primary">
-                                <i class="fas fa-sync-alt mr-2"></i>Try Again
-                            </button>
+                // Auto-retry for Render cold start
+                const retryCount = loadStations._retryCount || 0;
+                if (retryCount < 3) {
+                    loadStations._retryCount = retryCount + 1;
+                    const wait = (retryCount + 1) * 5;
+                    container.innerHTML = `
+                        <div class="col-span-3">
+                            <div class="empty-state">
+                                <div class="text-yellow-500 text-7xl mb-4">⏳</div>
+                                <h3 class="text-3xl font-bold text-gray-800 mb-3">Server Waking Up...</h3>
+                                <p class="text-gray-600 text-lg mb-4">The server is starting up. Auto-retrying in ${wait} seconds...</p>
+                                <p class="text-gray-500 mb-6">Attempt ${retryCount + 1} of 3</p>
+                                <div class="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                            </div>
                         </div>
-                    </div>
-                `;
-                document.getElementById('loadMoreContainer').classList.add('hidden');
+                    `;
+                    setTimeout(() => loadStations(), wait * 1000);
+                } else {
+                    loadStations._retryCount = 0;
+                    container.innerHTML = `
+                        <div class="col-span-3">
+                            <div class="empty-state">
+                                <div class="text-red-500 text-7xl mb-4">⚠️</div>
+                                <h3 class="text-3xl font-bold text-gray-800 mb-3">Connection Error</h3>
+                                <p class="text-gray-600 text-lg mb-4">Unable to connect to the backend server.</p>
+                                <p class="text-gray-500 mb-6">Please try again in a moment (server may be waking up).</p>
+                                <button onclick="loadStations._retryCount=0; loadStations()" class="btn-primary">
+                                    <i class="fas fa-sync-alt mr-2"></i>Try Again
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('loadMoreContainer').classList.add('hidden');
+                }
             }
         }
 
