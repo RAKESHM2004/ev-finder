@@ -324,25 +324,61 @@
             border-radius: 0.75rem;
             font-weight: 600;
             text-align: center;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: all 0.3s;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #d1d5db;
+            background: white;
+            color: #374151;
+            pointer-events: all !important;
+            user-select: none;
+        }
+
+        .toggle-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .toggle-btn.active {
             background: #059669;
             color: white;
             border-color: #059669;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.3);
         }
 
         .toggle-btn.station.active {
             background: #3b82f6;
             border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
         }
 
         .toggle-btn.mechanic.active {
             background: #f59e0b;
             border-color: #f59e0b;
+            color: white;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+
+        .toggle-btn.mechanic:not(.active) {
+            border-color: #f59e0b;
+            color: #d97706;
+        }
+
+        .toggle-btn.mechanic:not(.active):hover {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .toggle-btn.station:not(.active) {
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+
+        .toggle-btn.station:not(.active):hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
         }
 
         .provider-response {
@@ -1406,20 +1442,27 @@
 
         // Toggle between station and mechanic forms
         function showRequestType(type) {
+            console.log('Switching to:', type);
             currentRequestType = type;
             
+            // Remove active from all toggle buttons
             document.querySelectorAll('.toggle-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             
+            const stationForm = document.getElementById('stationRequestForm');
+            const mechanicForm = document.getElementById('mechanicRequestForm');
+            const stationBtn = document.querySelector('.toggle-btn.station');
+            const mechanicBtn = document.querySelector('.toggle-btn.mechanic');
+
             if (type === 'station') {
-                document.querySelector('.toggle-btn.station').classList.add('active');
-                document.getElementById('stationRequestForm').classList.remove('hidden');
-                document.getElementById('mechanicRequestForm').classList.add('hidden');
+                if (stationBtn) stationBtn.classList.add('active');
+                if (stationForm) stationForm.classList.remove('hidden');
+                if (mechanicForm) mechanicForm.classList.add('hidden');
             } else {
-                document.querySelector('.toggle-btn.mechanic').classList.add('active');
-                document.getElementById('mechanicRequestForm').classList.remove('hidden');
-                document.getElementById('stationRequestForm').classList.add('hidden');
+                if (mechanicBtn) mechanicBtn.classList.add('active');
+                if (mechanicForm) mechanicForm.classList.remove('hidden');
+                if (stationForm) stationForm.classList.add('hidden');
             }
         }
 
