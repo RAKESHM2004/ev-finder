@@ -308,7 +308,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:5000/api';
+        const API_BASE_URL = window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api';
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -434,7 +434,7 @@
                 if (!navigator.onLine) {
                     errorMessage = 'You are offline. Please check your internet connection.';
                 } else {
-                    errorMessage += 'Please make sure the backend server is running on port 5000.';
+                    errorMessage += 'Please try again in a moment (server may be waking up).';
                 }
                 
                 errorText.textContent = errorMessage;
