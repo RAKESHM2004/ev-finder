@@ -100,17 +100,14 @@ document.addEventListener('contextmenu', (e) => {
     }
 });
 
-// Prevent Console Logging in Production (optional)
-if (window.location.hostname !== 'localhost') {
-    console.log = function() {};
-    console.info = function() {};
-}
+// Console logging kept enabled for debugging
 
 // Security Warning in Console
 console.log('%c⚠️ SECURITY WARNING', 'color: red; font-size: 16px; font-weight: bold;');
 console.log('%cDo not paste any code here. This could compromise your account.', 'color: orange; font-size: 12px;');
 
-module.exports = {
+// Make available globally
+window.EVSafety = {
     sanitizeHTML,
     escapeHTML,
     secureStorage,
