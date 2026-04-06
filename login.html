@@ -380,14 +380,7 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Check if the selected role matches the actual user role
-                    if (data.user.role !== selectedRole) {
-                        errorText.textContent = `This account is registered as ${data.user.role}. Please select "${data.user.role}" from the dropdown.`;
-                        errorElement.classList.remove('hidden');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
-                        return;
-                    }
+                    // Role check disabled - backend assigns correct role automatically
                     
                     // Store auth data
                     localStorage.setItem('token', data.token);
