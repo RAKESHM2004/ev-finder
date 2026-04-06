@@ -274,7 +274,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:5000/api';
+        const API_BASE_URL = window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api';
         let allMechanics = [];
 
         // Toast notification
@@ -335,7 +335,7 @@
                     <div class="col-span-3 text-center py-12">
                         <div class="text-red-500 text-6xl mb-4">⚠️</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Connection Error</h3>
-                        <p class="text-gray-600">Unable to load mechanics. Please make sure the backend server is running on port 5000.</p>
+                        <p class="text-gray-600">Unable to load mechanics. Please try again in a moment (server may be waking up).</p>
                         <button onclick="loadMechanics()" class="mt-4 btn-primary">
                             <i class="fas fa-sync-alt mr-2"></i>Try Again
                         </button>
