@@ -1062,6 +1062,7 @@
         </div>
     </footer>
 
+    <script src="js/config.js"></script>
     <script>
         const API_BASE_URL = window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api';
         
@@ -1109,14 +1110,18 @@
             window.location.href = 'login.html';
         }
 
-        if (user.role !== 'user') {
+        // Only redirect if role is explicitly a non-user role (not empty/undefined)
+        if (user.role && user.role !== 'user') {
             addDebugLog(`User is not a regular user (role: ${user.role}), redirecting`, 'error');
             if (user.role === 'admin') {
                 window.location.href = 'admin-dashboard.html';
+                return;
             } else if (user.role === 'mechanic') {
                 window.location.href = 'mechanic-dashboard.html';
+                return;
             } else if (user.role === 'station_owner') {
                 window.location.href = 'station-owner-dashboard.html';
+                return;
             }
         }
 
@@ -2271,7 +2276,6 @@
     </script>
     
     <!-- Add Currency Selector Script -->
-    <script src="currency-selector.js"></script>
     <script>
         // Add this helper function for price formatting
         function formatPrice(priceUSD, currencyInfo = null) {
@@ -2385,7 +2389,6 @@
             `}).join('');
         };
     </script>
-    <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ai-features.js"></script>
