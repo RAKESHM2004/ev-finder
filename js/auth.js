@@ -35,7 +35,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const role = document.getElementById('role')?.value || 'user';
     const errorElement = document.getElementById('error');
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
@@ -104,138 +103,16 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 });
 
-// Handle registration form
-document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const phone = document.getElementById('phone').value;
-    const role = document.getElementById('role')?.value || 'user';
-    const terms = document.getElementById('terms')?.checked || false;
-    
-    const errorElement = document.getElementById('errorMessage');
-    const successElement = document.getElementById('successMessage');
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
-    
-    errorElement?.classList.add('hidden');
-    successElement?.classList.add('hidden');
-    
-    if (!terms) {
-        document.getElementById('errorText').textContent = 'You must agree to the Terms of Service';
-        errorElement.classList.remove('hidden');
-        return;
-    }
-    
-    if (!name || !email || !password || !confirmPassword) {
-        document.getElementById('errorText').textContent = 'Please fill in all required fields';
-        errorElement.classList.remove('hidden');
-        return;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        document.getElementById('errorText').textContent = 'Please enter a valid email address';
-        errorElement.classList.remove('hidden');
-        return;
-    }
-    
-    if (password.length < 6) {
-        document.getElementById('errorText').textContent = 'Password must be at least 6 characters';
-        errorElement.classList.remove('hidden');
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        document.getElementById('errorText').textContent = 'Passwords do not match';
-        errorElement.classList.remove('hidden');
-        return;
-    }
-    
-    submitBtn.disabled = true;
-    btnText.textContent = 'Creating Account...';
-    btnSpinner.classList.remove('hidden');
-    
-    const registrationData = {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-        phone: phone ? phone.trim() : undefined,
-        role
-    };
-    
-    if (role === 'mechanic') {
-        registrationData.shopName = document.getElementById('shopName')?.value || `${name}'s Auto Service`;
-        registrationData.experience = parseInt(document.getElementById('experience')?.value) || 0;
-        registrationData.services = ['General Maintenance'];
-        registrationData.emergencyService = false;
-    }
-    
-    try {
-        console.log('Sending registration to:', `${API_BASE_URL}/auth/register`);
-        
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(registrationData)
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            let successMessage = 'Registration successful! ';
-            if (role === 'mechanic') {
-                successMessage += 'Your account is pending admin verification.';
-            } else {
-                successMessage += 'Redirecting...';
-            }
-            
-            document.getElementById('successText').textContent = successMessage;
-            successElement.classList.remove('hidden');
-            
-            setTimeout(() => {
-                if (role === 'admin') {
-                    window.location.href = 'admin-dashboard.html';
-                } else if (role === 'mechanic') {
-                    window.location.href = 'mechanic-pending.html';
-                } else {
-                    window.location.href = 'user-request-dashboard.html';
-                }
-            }, 2000);
-        } else {
-            document.getElementById('errorText').textContent = data.message || 'Registration failed';
-            errorElement.classList.remove('hidden');
-            submitBtn.disabled = false;
-            btnText.textContent = 'Create Account';
-            btnSpinner.classList.add('hidden');
-        }
-    } catch (error) {
-        console.error('Registration error:', error);
-        document.getElementById('errorText').textContent = 'Connection error. Please make sure the backend server is running.';
-        errorElement.classList.remove('hidden');
-        submitBtn.disabled = false;
-        btnText.textContent = 'Create Account';
-        btnSpinner.classList.add('hidden');
-    }
-});
+// NOTE: Registration is now handled by register.html with OTP flow
+// This file no longer contains direct registration to prevent bypassing OTP
 
 // Check if user is already logged in
 document.addEventListener('DOMContentLoaded', () => {
-    // FIXED: Only auto-redirect on login/register pages
-    // Do NOT redirect on index.html or other pages - causes infinite loop!
+    // Only auto-redirect on login/register pages
     const currentPage = window.location.pathname.split('/').pop();
     const authPages = ['login.html', 'register.html'];
     
-    if (!authPages.includes(currentPage)) return; // ← STOP here for all other pages
+    if (!authPages.includes(currentPage)) return;
     
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
