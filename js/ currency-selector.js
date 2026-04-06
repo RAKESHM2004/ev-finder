@@ -8,7 +8,7 @@ class CurrencySelector {
         this.currencies = [];
         this.selectedCurrency = null;
         // Use global API_BASE_URL from config.js
-        this.apiBaseUrl = window.API_BASE_URL ? window.API_BASE_URL.replace('/api', '') : 'http://localhost:5000/api';
+        this.apiBaseUrl = (window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api').replace('/api', '');
         this.init();
     }
 
