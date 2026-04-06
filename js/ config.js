@@ -9,8 +9,7 @@
 // ============================================
 
 // Production URL (Render backend)
-const PRODUCTION_API_URL = 'https://ev-finder-backend-kwik.onrender.com/api';
-
+const PRODUCTION_API_URL = 'https://ev-finder-backend-stsc.onrender.com/api';
 // Development URL (Local backend)
 const DEVELOPMENT_API_URL = 'http://localhost:5000/api';
 
