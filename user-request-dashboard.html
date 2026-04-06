@@ -865,7 +865,7 @@
                 </div>
 
                 <!-- Mechanic Request Form -->
-                <div id="mechanicRequestForm" class="dashboard-card hidden">
+                <div id="mechanicRequestForm" class="dashboard-card" style="display:none;">
                     <h2 class="text-xl font-bold mb-4 flex items-center text-yellow-600">
                         <i class="fas fa-tools mr-2"></i>
                         Request Mechanic Service
@@ -1461,39 +1461,41 @@
             const mechanicBtn = document.getElementById('mechanicToggleBtn');
 
             if (type === 'station') {
-                // Station active
+                // Station button active
                 if (stationBtn) {
                     stationBtn.style.background = '#3b82f6';
                     stationBtn.style.color = 'white';
                     stationBtn.style.borderColor = '#3b82f6';
                     stationBtn.style.boxShadow = '0 4px 12px rgba(59,130,246,0.4)';
                 }
-                // Mechanic inactive
+                // Mechanic button inactive
                 if (mechanicBtn) {
                     mechanicBtn.style.background = 'white';
                     mechanicBtn.style.color = '#d97706';
                     mechanicBtn.style.borderColor = '#f59e0b';
                     mechanicBtn.style.boxShadow = 'none';
                 }
-                if (stationForm) stationForm.classList.remove('hidden');
-                if (mechanicForm) mechanicForm.classList.add('hidden');
+                // Show/hide forms using display style (not classList - Tailwind overrides it)
+                if (stationForm) stationForm.style.display = 'block';
+                if (mechanicForm) mechanicForm.style.display = 'none';
             } else {
-                // Mechanic active
+                // Mechanic button active
                 if (mechanicBtn) {
                     mechanicBtn.style.background = '#f59e0b';
                     mechanicBtn.style.color = 'white';
                     mechanicBtn.style.borderColor = '#f59e0b';
                     mechanicBtn.style.boxShadow = '0 4px 12px rgba(245,158,11,0.4)';
                 }
-                // Station inactive
+                // Station button inactive
                 if (stationBtn) {
                     stationBtn.style.background = 'white';
                     stationBtn.style.color = '#2563eb';
                     stationBtn.style.borderColor = '#3b82f6';
                     stationBtn.style.boxShadow = 'none';
                 }
-                if (mechanicForm) mechanicForm.classList.remove('hidden');
-                if (stationForm) stationForm.classList.add('hidden');
+                // Show/hide forms using display style
+                if (mechanicForm) mechanicForm.style.display = 'block';
+                if (stationForm) stationForm.style.display = 'none';
             }
         }
 
