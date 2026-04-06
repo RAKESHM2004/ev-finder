@@ -369,7 +369,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_BASE_URL = 'http://localhost:5000/api';
+        const API_BASE_URL = window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api';
         let allStations = [];
         let filteredStations = [];
         let map;
@@ -512,7 +512,7 @@
                             <div class="text-red-500 text-7xl mb-4">⚠️</div>
                             <h3 class="text-3xl font-bold text-gray-800 mb-3">Connection Error</h3>
                             <p class="text-gray-600 text-lg mb-4">Unable to connect to the backend server.</p>
-                            <p class="text-gray-500 mb-6">Please make sure the backend server is running on port 5000.</p>
+                            <p class="text-gray-500 mb-6">Please try again in a moment (server may be waking up).</p>
                             <button onclick="loadStations()" class="btn-primary">
                                 <i class="fas fa-sync-alt mr-2"></i>Try Again
                             </button>
