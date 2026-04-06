@@ -230,6 +230,13 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
 
 // Check if user is already logged in
 document.addEventListener('DOMContentLoaded', () => {
+    // FIXED: Only auto-redirect on login/register pages
+    // Do NOT redirect on index.html or other pages - causes infinite loop!
+    const currentPage = window.location.pathname.split('/').pop();
+    const authPages = ['login.html', 'register.html'];
+    
+    if (!authPages.includes(currentPage)) return; // ← STOP here for all other pages
+    
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     
