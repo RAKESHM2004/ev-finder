@@ -1274,16 +1274,15 @@
         }
 
         // Load stations from API
-        async function loadStations() {
+        async function loadStations(retryCount = 0) {
             try {
-                addDebugLog('Fetching stations from API');
-                const response = await fetch(`${API_BASE_URL}/stations`);
+                addDebugLog('Fetching stations from API...');
+                document.getElementById('stationSelect').innerHTML = '<option value="">⏳ Loading stations...</option>';
                 
+                const response = await fetch(`${API_BASE_URL}/stations`);
                 if (!response.ok) throw new Error('Failed to load stations');
                 
                 stations = await response.json();
-                
-                // Add location data to stations if missing
                 stations = stations.map(station => ({
                     ...station,
                     country: station.country || 'India',
@@ -1291,12 +1290,10 @@
                     city: station.city || 'Chennai'
                 }));
                 
-                addDebugLog(`Loaded ${stations.length} stations`, 'success');
+                addDebugLog(`✅ Loaded ${stations.length} stations`, 'success');
                 
-                // Initial population of station select
                 const stationSelect = document.getElementById('stationSelect');
                 stationSelect.innerHTML = '<option value="">Choose a station</option>';
-                
                 stations.forEach(station => {
                     const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
                     stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
@@ -1304,25 +1301,33 @@
                 
             } catch (error) {
                 addDebugLog(`Error loading stations: ${error.message}`, 'error');
-                showToast('Failed to load stations', 'error');
-                document.getElementById('stationSelect').innerHTML = '<option value="">Error loading stations</option>';
+                if (retryCount < 3) {
+                    // Auto-retry for Render cold start (wait 5s then retry)
+                    const wait = (retryCount + 1) * 5;
+                    addDebugLog(`Server waking up... retrying in ${wait}s (attempt ${retryCount+1}/3)`);
+                    document.getElementById('stationSelect').innerHTML = `<option value="">⏳ Server waking up... retry ${retryCount+1}/3</option>`;
+                    setTimeout(() => loadStations(retryCount + 1), wait * 1000);
+                } else {
+                    showToast('Could not load stations. Please refresh the page.', 'error');
+                    document.getElementById('stationSelect').innerHTML = '<option value="">❌ Failed to load - refresh page</option>';
+                }
             }
         }
 
         // Load mechanics from API
-        async function loadMechanics() {
+        async function loadMechanics(retryCount = 0) {
             try {
-                addDebugLog('Fetching mechanics from API');
-                const response = await fetch(`${API_BASE_URL}/mechanics`);
+                addDebugLog('Fetching mechanics from API...');
+                document.getElementById('mechanicSelect').innerHTML = '<option value="">⏳ Loading mechanics...</option>';
                 
+                const response = await fetch(`${API_BASE_URL}/mechanics`);
                 if (!response.ok) throw new Error('Failed to load mechanics');
                 
                 mechanics = await response.json();
-                addDebugLog(`Loaded ${mechanics.length} mechanics`, 'success');
+                addDebugLog(`✅ Loaded ${mechanics.length} mechanics`, 'success');
                 
                 const mechanicSelect = document.getElementById('mechanicSelect');
                 mechanicSelect.innerHTML = '<option value="">Choose a mechanic</option>';
-                
                 mechanics.forEach(mechanic => {
                     if (mechanic.verified) {
                         mechanicSelect.innerHTML += `<option value="${mechanic._id}">${mechanic.shopName} ⭐ ${mechanic.rating || 'New'}</option>`;
@@ -1331,8 +1336,15 @@
                 
             } catch (error) {
                 addDebugLog(`Error loading mechanics: ${error.message}`, 'error');
-                showToast('Failed to load mechanics', 'error');
-                document.getElementById('mechanicSelect').innerHTML = '<option value="">Error loading mechanics</option>';
+                if (retryCount < 3) {
+                    const wait = (retryCount + 1) * 5;
+                    addDebugLog(`Server waking up... retrying in ${wait}s (attempt ${retryCount+1}/3)`);
+                    document.getElementById('mechanicSelect').innerHTML = `<option value="">⏳ Server waking up... retry ${retryCount+1}/3</option>`;
+                    setTimeout(() => loadMechanics(retryCount + 1), wait * 1000);
+                } else {
+                    showToast('Could not load mechanics. Please refresh the page.', 'error');
+                    document.getElementById('mechanicSelect').innerHTML = '<option value="">❌ Failed to load - refresh page</option>';
+                }
             }
         }
 
