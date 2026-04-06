@@ -312,6 +312,7 @@
             text-decoration: line-through;
         }
 
+        /* Fixed Toggle Button Styles */
         .request-type-toggle {
             display: flex;
             gap: 1rem;
@@ -322,29 +323,20 @@
             flex: 1;
             padding: 1rem;
             border-radius: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1rem;
             text-align: center;
-            cursor: pointer !important;
+            cursor: pointer;
             transition: all 0.3s;
             border: 2px solid #d1d5db;
             background: white;
             color: #374151;
-            pointer-events: all !important;
-            user-select: none;
+            pointer-events: auto;
         }
 
         .toggle-btn:hover {
-            background: #f3f4f6;
-            border-color: #9ca3af;
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .toggle-btn.active {
-            background: #059669;
-            color: white;
-            border-color: #059669;
-            box-shadow: 0 4px 12px rgba(5,150,105,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .toggle-btn.station.active {
@@ -352,6 +344,16 @@
             border-color: #3b82f6;
             color: white;
             box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+
+        .toggle-btn.station:not(.active) {
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+
+        .toggle-btn.station:not(.active):hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
         }
 
         .toggle-btn.mechanic.active {
@@ -369,16 +371,6 @@
         .toggle-btn.mechanic:not(.active):hover {
             background: #fffbeb;
             border-color: #f59e0b;
-        }
-
-        .toggle-btn.station:not(.active) {
-            border-color: #3b82f6;
-            color: #2563eb;
-        }
-
-        .toggle-btn.station:not(.active):hover {
-            background: #eff6ff;
-            border-color: #3b82f6;
         }
 
         .provider-response {
@@ -445,93 +437,6 @@
             transform: scale(1.2);
         }
 
-        .debug-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: white;
-            border: 2px solid #10b981;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            max-width: 400px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        .debug-panel.visible {
-            display: block;
-        }
-
-        .debug-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .debug-title {
-            font-weight: bold;
-            color: #10b981;
-        }
-
-        .debug-close {
-            cursor: pointer;
-            color: #6b7280;
-        }
-
-        .debug-close:hover {
-            color: #ef4444;
-        }
-
-        .debug-log {
-            font-family: monospace;
-            font-size: 0.75rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .debug-log-entry {
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .debug-log-entry.error {
-            color: #ef4444;
-        }
-
-        .debug-log-entry.success {
-            color: #10b981;
-        }
-
-        .debug-log-entry.info {
-            color: #3b82f6;
-        }
-
-        .debug-toggle {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            z-index: 1001;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .debug-toggle:hover {
-            background: #059669;
-        }
-
-        /* Status Guide Styles */
         .status-guide-container {
             background: white;
             border-radius: 1rem;
@@ -603,6 +508,10 @@
             .status-guide-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
+            }
+            .request-type-toggle {
+                flex-direction: column;
+                gap: 0.5rem;
             }
         }
     </style>
@@ -720,76 +629,13 @@
             </div>
         </div>
 
-        <!-- Location Search Section -->
-        <div class="dashboard-card mb-6">
-            <h2 class="text-xl font-bold mb-4 flex items-center">
-                <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
-                Find Stations by Location
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Country</label>
-                    <select id="countryFilter" class="w-full p-2 border rounded-lg" onchange="updateStateDropdown(); filterStationsByLocation();">
-                        <option value="">All Countries</option>
-                        <option value="India">India</option>
-                        <option value="USA">USA</option>
-                        <option value="UK">UK</option>
-                        <option value="Canada">Canada</option>
-                        <option value="Australia">Australia</option>
-                        <option value="Germany">Germany</option>
-                        <option value="France">France</option>
-                        <option value="Japan">Japan</option>
-                        <option value="China">China</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">State / Province</label>
-                    <select id="stateFilter" class="w-full p-2 border rounded-lg" onchange="updateCityDropdown(); filterStationsByLocation();">
-                        <option value="">All States</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">City / District</label>
-                    <select id="cityFilter" class="w-full p-2 border rounded-lg" onchange="filterStationsByLocation();">
-                        <option value="">All Cities</option>
-                    </select>
-                </div>
-                
-                <div class="flex items-end gap-2">
-                    <button onclick="searchByLocation()" class="flex-1 btn-primary py-2">
-                        <i class="fas fa-search mr-2"></i>Search Stations
-                    </button>
-                    <button onclick="resetLocationFilters()" class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div id="locationStats" class="mt-3 text-sm text-gray-500 hidden">
-                <i class="fas fa-info-circle mr-1"></i>
-                <span id="stationCountDisplay">0</span> stations found in selected location
-            </div>
-        </div>
-
-        <!-- Request Type Toggle -->
-        <!-- Request Type Toggle - inline styles to prevent Tailwind override -->
-        <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
-            <button id="stationToggleBtn"
-                onclick="showRequestType('station')"
-                style="flex:1; padding:1rem; border-radius:0.75rem; font-weight:700; font-size:1rem;
-                       cursor:pointer; transition:all 0.3s; border:2px solid #3b82f6;
-                       background:#3b82f6; color:white; box-shadow:0 4px 12px rgba(59,130,246,0.4);">
-                <i class="fas fa-charging-station" style="margin-right:8px;"></i>Book Station Slot
+        <!-- Request Type Toggle - FIXED BUTTONS -->
+        <div class="request-type-toggle">
+            <button id="stationToggleBtn" class="toggle-btn station active" onclick="switchToStation()">
+                <i class="fas fa-charging-station"></i> Book Station Slot
             </button>
-            <button id="mechanicToggleBtn"
-                onclick="showRequestType('mechanic')"
-                style="flex:1; padding:1rem; border-radius:0.75rem; font-weight:700; font-size:1rem;
-                       cursor:pointer; transition:all 0.3s; border:2px solid #f59e0b;
-                       background:white; color:#d97706;">
-                <i class="fas fa-tools" style="margin-right:8px;"></i>Request Mechanic
+            <button id="mechanicToggleBtn" class="toggle-btn mechanic" onclick="switchToMechanic()">
+                <i class="fas fa-tools"></i> Request Mechanic
             </button>
         </div>
 
@@ -810,10 +656,6 @@
                             <select id="stationSelect" class="w-full p-3 border rounded-lg" required onchange="updateStationDetails()">
                                 <option value="">Loading stations...</option>
                             </select>
-                            <p id="stationLocationHint" class="text-xs text-gray-500 mt-1 hidden">
-                                <i class="fas fa-map-marker-alt mr-1"></i>
-                                <span></span>
-                            </p>
                         </div>
 
                         <div id="stationDetails" class="bg-gray-50 p-3 rounded-lg text-sm hidden">
@@ -1123,24 +965,52 @@
                 debugLogs.shift();
             }
             
-            updateDebugPanel();
             console.log(`[DEBUG] ${logEntry}`);
         }
 
-        function updateDebugPanel() {
-            const container = document.getElementById('debugLogs');
-            if (!container) return;
+        // ============================================
+        // TOGGLE FUNCTIONS - FIXED
+        // ============================================
+        function switchToStation() {
+            console.log('Switching to Station form');
             
-            container.innerHTML = debugLogs.map(log => 
-                `<div class="debug-log-entry ${log.type}">${log.text}</div>`
-            ).join('');
+            const stationForm = document.getElementById('stationRequestForm');
+            const mechanicForm = document.getElementById('mechanicRequestForm');
+            const stationBtn = document.getElementById('stationToggleBtn');
+            const mechanicBtn = document.getElementById('mechanicToggleBtn');
             
-            container.scrollTop = container.scrollHeight;
+            if (stationForm) stationForm.style.display = 'block';
+            if (mechanicForm) mechanicForm.style.display = 'none';
+            
+            if (stationBtn) {
+                stationBtn.classList.add('active');
+                stationBtn.classList.remove('station'); // Keep station class
+                stationBtn.classList.add('station');
+            }
+            if (mechanicBtn) {
+                mechanicBtn.classList.remove('active');
+            }
         }
-
-        function toggleDebugPanel() {
-            const panel = document.getElementById('debugPanel');
-            panel.classList.toggle('visible');
+        
+        function switchToMechanic() {
+            console.log('Switching to Mechanic form');
+            
+            const stationForm = document.getElementById('stationRequestForm');
+            const mechanicForm = document.getElementById('mechanicRequestForm');
+            const stationBtn = document.getElementById('stationToggleBtn');
+            const mechanicBtn = document.getElementById('mechanicToggleBtn');
+            
+            if (mechanicForm) mechanicForm.style.display = 'block';
+            if (stationForm) stationForm.style.display = 'none';
+            
+            if (mechanicBtn) {
+                mechanicBtn.classList.add('active');
+                mechanicBtn.classList.remove('mechanic');
+                mechanicBtn.classList.add('mechanic');
+            }
+            if (stationBtn) {
+                stationBtn.classList.remove('active');
+            }
         }
 
         // Check if user is logged in
@@ -1153,10 +1023,10 @@
         if (!token) {
             addDebugLog('No token found, redirecting to login', 'error');
             window.location.href = 'login.html';
-            return; // ← STOP execution after redirect
+            return;
         }
 
-        // Only redirect if role is explicitly a non-user role (not empty/undefined)
+        // Only redirect if role is explicitly a non-user role
         if (user.role && user.role !== 'user') {
             addDebugLog(`User is not a regular user (role: ${user.role}), redirecting`, 'error');
             if (user.role === 'admin') {
@@ -1170,98 +1040,6 @@
                 return;
             }
         }
-
-        // Location data for dropdowns
-        const locationData = {
-            India: {
-                states: ['Tamil Nadu', 'Maharashtra', 'Delhi', 'Karnataka', 'Gujarat', 'West Bengal', 'Telangana', 'Rajasthan', 'Uttar Pradesh', 'Kerala'],
-                cities: {
-                    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli', 'Vellore'],
-                    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane'],
-                    'Delhi': ['New Delhi', 'South Delhi', 'North Delhi', 'East Delhi', 'West Delhi'],
-                    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore'],
-                    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
-                    'West Bengal': ['Kolkata', 'Howrah', 'Darjeeling', 'Siliguri'],
-                    'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad'],
-                    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota'],
-                    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi'],
-                    'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur']
-                }
-            },
-            USA: {
-                states: ['California', 'Texas', 'New York', 'Florida', 'Illinois', 'Washington'],
-                cities: {
-                    'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
-                    'Texas': ['Houston', 'Dallas', 'Austin', 'San Antonio'],
-                    'New York': ['New York City', 'Buffalo', 'Rochester'],
-                    'Florida': ['Miami', 'Orlando', 'Tampa'],
-                    'Illinois': ['Chicago', 'Springfield'],
-                    'Washington': ['Seattle', 'Spokane']
-                }
-            },
-            UK: {
-                states: ['England', 'Scotland', 'Wales', 'Northern Ireland'],
-                cities: {
-                    'England': ['London', 'Manchester', 'Birmingham', 'Liverpool'],
-                    'Scotland': ['Edinburgh', 'Glasgow'],
-                    'Wales': ['Cardiff', 'Swansea'],
-                    'Northern Ireland': ['Belfast']
-                }
-            },
-            Canada: {
-                states: ['Ontario', 'Quebec', 'British Columbia', 'Alberta'],
-                cities: {
-                    'Ontario': ['Toronto', 'Ottawa', 'Mississauga'],
-                    'Quebec': ['Montreal', 'Quebec City'],
-                    'British Columbia': ['Vancouver', 'Victoria'],
-                    'Alberta': ['Calgary', 'Edmonton']
-                }
-            },
-            Australia: {
-                states: ['New South Wales', 'Victoria', 'Queensland', 'Western Australia'],
-                cities: {
-                    'New South Wales': ['Sydney', 'Newcastle'],
-                    'Victoria': ['Melbourne', 'Geelong'],
-                    'Queensland': ['Brisbane', 'Gold Coast'],
-                    'Western Australia': ['Perth']
-                }
-            },
-            Germany: {
-                states: ['Bavaria', 'Berlin', 'Hamburg', 'North Rhine-Westphalia'],
-                cities: {
-                    'Bavaria': ['Munich', 'Nuremberg'],
-                    'Berlin': ['Berlin'],
-                    'Hamburg': ['Hamburg'],
-                    'North Rhine-Westphalia': ['Cologne', 'Dusseldorf']
-                }
-            },
-            France: {
-                states: ['Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes'],
-                cities: {
-                    'Île-de-France': ['Paris'],
-                    'Provence-Alpes-Côte d\'Azur': ['Marseille', 'Nice'],
-                    'Auvergne-Rhône-Alpes': ['Lyon']
-                }
-            },
-            Japan: {
-                states: ['Tokyo', 'Osaka', 'Aichi', 'Hokkaido'],
-                cities: {
-                    'Tokyo': ['Tokyo', 'Yokohama'],
-                    'Osaka': ['Osaka', 'Kyoto'],
-                    'Aichi': ['Nagoya'],
-                    'Hokkaido': ['Sapporo']
-                }
-            },
-            China: {
-                states: ['Beijing', 'Shanghai', 'Guangdong', 'Sichuan'],
-                cities: {
-                    'Beijing': ['Beijing'],
-                    'Shanghai': ['Shanghai'],
-                    'Guangdong': ['Guangzhou', 'Shenzhen'],
-                    'Sichuan': ['Chengdu']
-                }
-            }
-        };
 
         // State variables
         let stations = [];
@@ -1282,7 +1060,6 @@
             document.getElementById('userName').textContent = user.name || 'User';
             addDebugLog('Page loaded, initializing dashboard');
             await loadUserVehicles();
-            // Wake up server first
             fetch(`${API_BASE_URL}/health`).catch(() => {});
             await loadStations();
             await loadMechanics();
@@ -1292,11 +1069,6 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('stationDate').min = today;
             document.getElementById('mechanicDate').min = today;
-            
-            // Initialize location dropdowns
-            if (window.updateStateDropdown) {
-                window.updateStateDropdown();
-            }
         });
 
         // Toggle mobile menu
@@ -1450,90 +1222,24 @@
             mechanicVehicleSelect.innerHTML = options;
         }
 
-        // Toggle between station and mechanic forms
-        function showRequestType(type) {
-            console.log('Switching to:', type);
-            currentRequestType = type;
-
-            const stationForm = document.getElementById('stationRequestForm');
-            const mechanicForm = document.getElementById('mechanicRequestForm');
-            const stationBtn = document.getElementById('stationToggleBtn');
-            const mechanicBtn = document.getElementById('mechanicToggleBtn');
-
-            if (type === 'station') {
-                // Station button active
-                if (stationBtn) {
-                    stationBtn.style.background = '#3b82f6';
-                    stationBtn.style.color = 'white';
-                    stationBtn.style.borderColor = '#3b82f6';
-                    stationBtn.style.boxShadow = '0 4px 12px rgba(59,130,246,0.4)';
-                }
-                // Mechanic button inactive
-                if (mechanicBtn) {
-                    mechanicBtn.style.background = 'white';
-                    mechanicBtn.style.color = '#d97706';
-                    mechanicBtn.style.borderColor = '#f59e0b';
-                    mechanicBtn.style.boxShadow = 'none';
-                }
-                // Show/hide forms using display style (not classList - Tailwind overrides it)
-                if (stationForm) stationForm.style.display = 'block';
-                if (mechanicForm) mechanicForm.style.display = 'none';
-            } else {
-                // Mechanic button active
-                if (mechanicBtn) {
-                    mechanicBtn.style.background = '#f59e0b';
-                    mechanicBtn.style.color = 'white';
-                    mechanicBtn.style.borderColor = '#f59e0b';
-                    mechanicBtn.style.boxShadow = '0 4px 12px rgba(245,158,11,0.4)';
-                }
-                // Station button inactive
-                if (stationBtn) {
-                    stationBtn.style.background = 'white';
-                    stationBtn.style.color = '#2563eb';
-                    stationBtn.style.borderColor = '#3b82f6';
-                    stationBtn.style.boxShadow = 'none';
-                }
-                // Show/hide forms using display style
-                if (mechanicForm) mechanicForm.style.display = 'block';
-                if (stationForm) stationForm.style.display = 'none';
-            }
-        }
-
         // Update station details when selected
         function updateStationDetails() {
             const stationId = document.getElementById('stationSelect').value;
             const detailsDiv = document.getElementById('stationDetails');
             const chargerSelect = document.getElementById('chargerType');
-            const locationHint = document.getElementById('stationLocationHint');
             
             if (!stationId) {
                 detailsDiv.classList.add('hidden');
                 chargerSelect.innerHTML = '<option value="">Select charger type</option>';
-                locationHint.classList.add('hidden');
                 return;
             }
             
             selectedStation = stations.find(s => s._id === stationId);
             addDebugLog(`Selected station: ${selectedStation.name}`);
             
-            // Build location string
-            const locationParts = [];
-            if (selectedStation.city) locationParts.push(selectedStation.city);
-            if (selectedStation.state) locationParts.push(selectedStation.state);
-            if (selectedStation.country) locationParts.push(selectedStation.country);
-            const locationString = locationParts.join(', ');
-            
-            // Show location hint
-            if (locationString) {
-                locationHint.querySelector('span').textContent = locationString;
-                locationHint.classList.remove('hidden');
-            }
-            
             detailsDiv.innerHTML = `
                 <p class="font-medium">${selectedStation.name}</p>
-                <p class="text-xs text-gray-500 flex items-center gap-1">
-                    <i class="fas fa-map-marker-alt"></i> ${locationString || 'Location not specified'}
-                </p>
+                <p class="text-xs text-gray-500">📍 ${selectedStation.city || ''}, ${selectedStation.state || ''}</p>
                 <p class="text-xs mt-1">⭐ ${selectedStation.rating || 'New'} • ${selectedStation.amenities?.join(' • ') || 'No amenities'}</p>
             `;
             detailsDiv.classList.remove('hidden');
@@ -1673,128 +1379,6 @@
                 }
             });
             updateMechanicPrice();
-        }
-
-        // Filter stations by location
-        function filterStationsByLocation() {
-            const country = document.getElementById('countryFilter').value;
-            const state = document.getElementById('stateFilter').value;
-            const city = document.getElementById('cityFilter').value;
-            
-            let filteredStations = [...stations];
-            
-            if (country) {
-                filteredStations = filteredStations.filter(station => 
-                    station.country?.toLowerCase() === country.toLowerCase()
-                );
-            }
-            
-            if (state) {
-                filteredStations = filteredStations.filter(station => 
-                    station.state?.toLowerCase() === state.toLowerCase()
-                );
-            }
-            
-            if (city) {
-                filteredStations = filteredStations.filter(station => 
-                    station.city?.toLowerCase() === city.toLowerCase()
-                );
-            }
-            
-            const stationSelect = document.getElementById('stationSelect');
-            const locationHint = document.getElementById('stationLocationHint');
-            
-            if (filteredStations.length > 0) {
-                stationSelect.innerHTML = '<option value="">Choose a station</option>';
-                filteredStations.forEach(station => {
-                    const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
-                    stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
-                });
-                
-                document.getElementById('stationCountDisplay').textContent = filteredStations.length;
-                document.getElementById('locationStats').classList.remove('hidden');
-                
-                addDebugLog(`Found ${filteredStations.length} stations in selected location`);
-            } else {
-                stationSelect.innerHTML = '<option value="">No stations found in this location</option>';
-                document.getElementById('stationCountDisplay').textContent = '0';
-                document.getElementById('locationStats').classList.remove('hidden');
-            }
-        }
-
-        // Search by location
-        function searchByLocation() {
-            const country = document.getElementById('countryFilter').value;
-            const state = document.getElementById('stateFilter').value;
-            const city = document.getElementById('cityFilter').value;
-            
-            if (!country && !state && !city) {
-                showToast('Please select at least one location filter', 'error');
-                return;
-            }
-            
-            let locationText = [];
-            if (country) locationText.push(country);
-            if (state) locationText.push(state);
-            if (city) locationText.push(city);
-            
-            addDebugLog(`Searching for stations in: ${locationText.join(', ')}`);
-            filterStationsByLocation();
-            
-            showToast(`Searching for stations in ${locationText.join(', ')}`);
-        }
-
-        // Reset location filters
-        function resetLocationFilters() {
-            document.getElementById('countryFilter').value = '';
-            document.getElementById('stateFilter').innerHTML = '<option value="">All States</option>';
-            document.getElementById('cityFilter').innerHTML = '<option value="">All Cities</option>';
-            document.getElementById('locationStats').classList.add('hidden');
-            
-            // Reset to all stations
-            const stationSelect = document.getElementById('stationSelect');
-            stationSelect.innerHTML = '<option value="">Choose a station</option>';
-            stations.forEach(station => {
-                const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
-                stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
-            });
-            
-            addDebugLog('Location filters reset');
-        }
-
-        // Update state dropdown
-        function updateStateDropdown() {
-            const country = document.getElementById('countryFilter').value;
-            const stateSelect = document.getElementById('stateFilter');
-            const citySelect = document.getElementById('cityFilter');
-            
-            if (!stateSelect) return;
-            
-            stateSelect.innerHTML = '<option value="">All States</option>';
-            if (citySelect) citySelect.innerHTML = '<option value="">All Cities</option>';
-            
-            if (country && locationData[country]) {
-                locationData[country].states.forEach(state => {
-                    stateSelect.innerHTML += `<option value="${state}">${state}</option>`;
-                });
-            }
-        }
-
-        // Update city dropdown
-        function updateCityDropdown() {
-            const country = document.getElementById('countryFilter').value;
-            const state = document.getElementById('stateFilter').value;
-            const citySelect = document.getElementById('cityFilter');
-            
-            if (!citySelect) return;
-            
-            citySelect.innerHTML = '<option value="">All Cities</option>';
-            
-            if (country && state && locationData[country]?.cities[state]) {
-                locationData[country].cities[state].forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
-                });
-            }
         }
 
         // Submit station request
@@ -2280,7 +1864,6 @@
             const pending = userRequests.filter(r => r.status === 'pending').length;
             const inProgress = userRequests.filter(r => r.status === 'accepted' || r.status === 'in-progress').length;
             const completed = userRequests.filter(r => r.status === 'completed').length;
-            const spent = userRequests.filter(r => r.status === 'completed').reduce((sum, r) => sum + (r.price || 0), 0);
             
             document.getElementById('totalRequests').textContent = total;
             document.getElementById('pendingRequests').textContent = pending;
@@ -2357,127 +1940,28 @@
         };
         
         // Make functions globally available
-        window.filterStationsByLocation = filterStationsByLocation;
-        window.searchByLocation = searchByLocation;
-        window.resetLocationFilters = resetLocationFilters;
-        window.updateStateDropdown = updateStateDropdown;
-        window.updateCityDropdown = updateCityDropdown;
+        window.switchToStation = switchToStation;
+        window.switchToMechanic = switchToMechanic;
+        window.filterRequests = filterRequests;
+        window.showRequestDetails = showRequestDetails;
+        window.cancelRequest = cancelRequest;
+        window.openRatingModal = openRatingModal;
+        window.setRating = setRating;
+        window.submitRating = submitRating;
+        window.closeRequestModal = closeRequestModal;
+        window.closeRatingModal = closeRatingModal;
+        window.showAddVehicle = showAddVehicle;
+        window.closeVehicleModal = closeVehicleModal;
+        window.updateStationDetails = updateStationDetails;
+        window.updateMechanicDetails = updateMechanicDetails;
+        window.updatePrice = updatePrice;
+        window.updateMechanicPrice = updateMechanicPrice;
+        window.updateTimeSlots = updateTimeSlots;
+        window.updateMechanicTimeSlots = updateMechanicTimeSlots;
+        window.selectTimeSlot = selectTimeSlot;
+        window.selectMechanicTimeSlot = selectMechanicTimeSlot;
     </script>
     
-    <!-- Add Currency Selector Script -->
-    <script>
-        // Add this helper function for price formatting
-        function formatPrice(priceUSD, currencyInfo = null) {
-            if (!currencyInfo) {
-                if (window.currencySelector) {
-                    return window.currencySelector.formatPrice(priceUSD);
-                }
-                return `$${priceUSD.toFixed(2)}`;
-            }
-            const convertedPrice = priceUSD * (currencyInfo.exchangeRate || 1);
-            return `${currencyInfo.symbol || '$'}${convertedPrice.toFixed(2)}`;
-        }
-
-        // Update the price display in the form
-        function updatePrice() {
-            const chargerSelect = document.getElementById('chargerType');
-            const selectedOption = chargerSelect.options[chargerSelect.selectedIndex];
-            const priceDisplay = document.getElementById('estimatedPrice');
-            
-            if (chargerSelect.value && selectedTimeSlot) {
-                const priceUSD = parseFloat(selectedOption.dataset.price) * 2;
-                
-                if (window.currencySelector) {
-                    const formatted = window.currencySelector.formatPrice(priceUSD);
-                    priceDisplay.textContent = formatted;
-                    priceDisplay.dataset.priceUsd = priceUSD;
-                } else {
-                    priceDisplay.textContent = '$' + priceUSD.toFixed(2);
-                }
-            } else {
-                priceDisplay.textContent = '$0';
-            }
-        }
-
-        // Update the mechanic price display
-        function updateMechanicPrice() {
-            const serviceSelect = document.getElementById('serviceType');
-            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-            const priceDisplay = document.getElementById('mechanicEstimatedPrice');
-            
-            if (serviceSelect.value && selectedMechanicTimeSlot) {
-                const priceUSD = parseFloat(selectedOption.dataset.price);
-                
-                if (window.currencySelector) {
-                    const formatted = window.currencySelector.formatPrice(priceUSD);
-                    priceDisplay.textContent = formatted;
-                    priceDisplay.dataset.priceUsd = priceUSD;
-                } else {
-                    priceDisplay.textContent = '$' + priceUSD;
-                }
-            } else {
-                priceDisplay.textContent = '$0';
-            }
-        }
-
-        // Update displayRequests to show formatted prices
-        const originalDisplayRequests = displayRequests;
-        displayRequests = function() {
-            const container = document.getElementById('requestsList');
-            
-            let filteredRequests = [...userRequests];
-            if (currentFilter !== 'all') {
-                filteredRequests = filteredRequests.filter(r => r.status === currentFilter);
-            }
-            
-            filteredRequests.sort((a, b) => new Date(b.requestTime) - new Date(a.requestTime));
-            
-            document.getElementById('requestsCount').textContent = filteredRequests.length + ' total';
-            
-            if (filteredRequests.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-gray-500"><p>No requests found</p></div>';
-                return;
-            }
-            
-            container.innerHTML = filteredRequests.map(request => {
-                const currencyInfo = request.currency || { symbol: '$', code: 'USD', exchangeRate: 1 };
-                const formattedPrice = formatPrice(request.price, currencyInfo);
-                
-                return `
-                <div class="request-card ${request.type} ${request.status}" onclick="showRequestDetails('${request._id}')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="font-semibold">${request.providerName}</h4>
-                            <p class="text-sm text-gray-600">
-                                ${request.type === 'station' ? '⚡ ' + request.service : '🔧 ' + request.service}
-                            </p>
-                        </div>
-                        <span class="status-badge status-${request.status}">
-                            ${formatStatus(request.status)}
-                        </span>
-                    </div>
-                    
-                    <div class="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                        <span><i class="far fa-calendar mr-1"></i>${new Date(request.date).toLocaleDateString()}</span>
-                        <span><i class="far fa-clock mr-1"></i>${request.time}</span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-semibold text-green-600">${formattedPrice}</span>
-                        <span class="text-xs text-gray-500">${request.vehicle?.make || ''} ${request.vehicle?.model || ''}</span>
-                    </div>
-                    
-                    ${request.providerResponse ? `
-                        <div class="mt-2 text-xs text-blue-600">
-                            <i class="fas fa-comment-dots mr-1"></i>Provider responded
-                        </div>
-                    ` : ''}
-                    
-                    ${request.notes ? `<p class="text-xs text-gray-500 mt-2">📝 ${request.notes.substring(0, 50)}${request.notes.length > 50 ? '...' : ''}</p>` : ''}
-                </div>
-            `}).join('');
-        };
-    </script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ai-features.js"></script>
