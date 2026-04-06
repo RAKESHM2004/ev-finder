@@ -1108,6 +1108,7 @@
         if (!token) {
             addDebugLog('No token found, redirecting to login', 'error');
             window.location.href = 'login.html';
+            return; // ← STOP execution after redirect
         }
 
         // Only redirect if role is explicitly a non-user role (not empty/undefined)
