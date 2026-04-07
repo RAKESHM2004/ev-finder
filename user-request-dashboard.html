@@ -312,11 +312,11 @@
             text-decoration: line-through;
         }
 
-        /* Fixed Toggle Button Styles */
-        .request-type-toggle {
+        /* Request Type Toggle Buttons - FIXED STYLES */
+        .request-toggle-container {
             display: flex;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .toggle-btn {
@@ -327,50 +327,36 @@
             font-size: 1rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid #d1d5db;
+            transition: all 0.3s ease;
+            border: 2px solid;
             background: white;
-            color: #374151;
-            pointer-events: auto;
+        }
+
+        .toggle-btn.station-btn {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .toggle-btn.station-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .toggle-btn.mechanic-btn {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .toggle-btn.mechanic-btn.active {
+            background: #f59e0b;
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
         }
 
         .toggle-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .toggle-btn.station.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-        }
-
-        .toggle-btn.station:not(.active) {
-            border-color: #3b82f6;
-            color: #2563eb;
-        }
-
-        .toggle-btn.station:not(.active):hover {
-            background: #eff6ff;
-            border-color: #3b82f6;
-        }
-
-        .toggle-btn.mechanic.active {
-            background: #f59e0b;
-            border-color: #f59e0b;
-            color: white;
-            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-        }
-
-        .toggle-btn.mechanic:not(.active) {
-            border-color: #f59e0b;
-            color: #d97706;
-        }
-
-        .toggle-btn.mechanic:not(.active):hover {
-            background: #fffbeb;
-            border-color: #f59e0b;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .provider-response {
@@ -435,6 +421,92 @@
 
         .rating-stars i:hover {
             transform: scale(1.2);
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .debug-panel.visible {
+            display: block;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .debug-title {
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .debug-close {
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .debug-close:hover {
+            color: #ef4444;
+        }
+
+        .debug-log {
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .debug-log-entry.error {
+            color: #ef4444;
+        }
+
+        .debug-log-entry.success {
+            color: #10b981;
+        }
+
+        .debug-log-entry.info {
+            color: #3b82f6;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .debug-toggle:hover {
+            background: #059669;
         }
 
         .status-guide-container {
@@ -504,14 +576,18 @@
             line-height: 1.3;
         }
 
+        /* Hide form by class */
+        .form-hidden {
+            display: none !important;
+        }
+
         @media (max-width: 640px) {
             .status-guide-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-            .request-type-toggle {
+            .request-toggle-container {
                 flex-direction: column;
-                gap: 0.5rem;
             }
         }
     </style>
@@ -531,7 +607,6 @@
                     </a>
                 </div>
                 
-                <!-- Navigation Links -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="index.html" class="nav-link">Home</a>
                     <a href="stations.html" class="nav-link">Stations</a>
@@ -541,7 +616,6 @@
                     <div class="flex items-center space-x-3" id="authButtons"></div>
                 </div>
 
-                <!-- Mobile menu button -->
                 <div class="md:hidden flex items-center">
                     <button type="button" class="text-gray-700 focus:outline-none" onclick="toggleMobileMenu()">
                         <i class="fas fa-bars text-2xl"></i>
@@ -550,7 +624,6 @@
             </div>
         </div>
 
-        <!-- Mobile menu -->
         <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 py-4 px-4">
             <div class="flex flex-col space-y-3">
                 <a href="index.html" class="text-gray-700 hover:text-green-600 py-2">Home</a>
@@ -629,13 +702,69 @@
             </div>
         </div>
 
-        <!-- Request Type Toggle - FIXED BUTTONS -->
-        <div class="request-type-toggle">
-            <button id="stationToggleBtn" class="toggle-btn station active" onclick="switchToStation()">
-                <i class="fas fa-charging-station"></i> Book Station Slot
+        <!-- Location Search Section -->
+        <div class="dashboard-card mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                Find Stations by Location
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                    <select id="countryFilter" class="w-full p-2 border rounded-lg" onchange="updateStateDropdown(); filterStationsByLocation();">
+                        <option value="">All Countries</option>
+                        <option value="India">India</option>
+                        <option value="USA">USA</option>
+                        <option value="UK">UK</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="Japan">Japan</option>
+                        <option value="China">China</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">State / Province</label>
+                    <select id="stateFilter" class="w-full p-2 border rounded-lg" onchange="updateCityDropdown(); filterStationsByLocation();">
+                        <option value="">All States</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">City / District</label>
+                    <select id="cityFilter" class="w-full p-2 border rounded-lg" onchange="filterStationsByLocation();">
+                        <option value="">All Cities</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end gap-2">
+                    <button onclick="searchByLocation()" class="flex-1 btn-primary py-2">
+                        <i class="fas fa-search mr-2"></i>Search Stations
+                    </button>
+                    <button onclick="resetLocationFilters()" class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="locationStats" class="mt-3 text-sm text-gray-500 hidden">
+                <i class="fas fa-info-circle mr-1"></i>
+                <span id="stationCountDisplay">0</span> stations found in selected location
+            </div>
+        </div>
+
+        <!-- Request Type Toggle Buttons - FIXED VERSION -->
+        <div class="request-toggle-container">
+            <button id="stationToggleBtn" class="toggle-btn station-btn active" onclick="switchRequestType('station')">
+                <i class="fas fa-charging-station" style="margin-right: 8px;"></i>
+                Book Station Slot
             </button>
-            <button id="mechanicToggleBtn" class="toggle-btn mechanic" onclick="switchToMechanic()">
-                <i class="fas fa-tools"></i> Request Mechanic
+            <button id="mechanicToggleBtn" class="toggle-btn mechanic-btn" onclick="switchRequestType('mechanic')">
+                <i class="fas fa-tools" style="margin-right: 8px;"></i>
+                Request Mechanic
             </button>
         </div>
 
@@ -656,6 +785,10 @@
                             <select id="stationSelect" class="w-full p-3 border rounded-lg" required onchange="updateStationDetails()">
                                 <option value="">Loading stations...</option>
                             </select>
+                            <p id="stationLocationHint" class="text-xs text-gray-500 mt-1 hidden">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span></span>
+                            </p>
                         </div>
 
                         <div id="stationDetails" class="bg-gray-50 p-3 rounded-lg text-sm hidden">
@@ -707,7 +840,7 @@
                 </div>
 
                 <!-- Mechanic Request Form -->
-                <div id="mechanicRequestForm" class="dashboard-card" style="display:none;">
+                <div id="mechanicRequestForm" class="dashboard-card form-hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center text-yellow-600">
                         <i class="fas fa-tools mr-2"></i>
                         Request Mechanic Service
@@ -812,7 +945,6 @@
                     </div>
                     
                     <div id="requestsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                        <!-- Requests will be loaded here -->
                         <div class="text-center py-8 text-gray-500">
                             <div class="loading-spinner mx-auto"></div>
                             <p class="mt-4">Loading your requests...</p>
@@ -965,52 +1097,24 @@
                 debugLogs.shift();
             }
             
+            updateDebugPanel();
             console.log(`[DEBUG] ${logEntry}`);
         }
 
-        // ============================================
-        // TOGGLE FUNCTIONS - FIXED
-        // ============================================
-        function switchToStation() {
-            console.log('Switching to Station form');
+        function updateDebugPanel() {
+            const container = document.getElementById('debugLogs');
+            if (!container) return;
             
-            const stationForm = document.getElementById('stationRequestForm');
-            const mechanicForm = document.getElementById('mechanicRequestForm');
-            const stationBtn = document.getElementById('stationToggleBtn');
-            const mechanicBtn = document.getElementById('mechanicToggleBtn');
+            container.innerHTML = debugLogs.map(log => 
+                `<div class="debug-log-entry ${log.type}">${log.text}</div>`
+            ).join('');
             
-            if (stationForm) stationForm.style.display = 'block';
-            if (mechanicForm) mechanicForm.style.display = 'none';
-            
-            if (stationBtn) {
-                stationBtn.classList.add('active');
-                stationBtn.classList.remove('station'); // Keep station class
-                stationBtn.classList.add('station');
-            }
-            if (mechanicBtn) {
-                mechanicBtn.classList.remove('active');
-            }
+            container.scrollTop = container.scrollHeight;
         }
-        
-        function switchToMechanic() {
-            console.log('Switching to Mechanic form');
-            
-            const stationForm = document.getElementById('stationRequestForm');
-            const mechanicForm = document.getElementById('mechanicRequestForm');
-            const stationBtn = document.getElementById('stationToggleBtn');
-            const mechanicBtn = document.getElementById('mechanicToggleBtn');
-            
-            if (mechanicForm) mechanicForm.style.display = 'block';
-            if (stationForm) stationForm.style.display = 'none';
-            
-            if (mechanicBtn) {
-                mechanicBtn.classList.add('active');
-                mechanicBtn.classList.remove('mechanic');
-                mechanicBtn.classList.add('mechanic');
-            }
-            if (stationBtn) {
-                stationBtn.classList.remove('active');
-            }
+
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            panel.classList.toggle('visible');
         }
 
         // Check if user is logged in
@@ -1041,6 +1145,98 @@
             }
         }
 
+        // Location data for dropdowns
+        const locationData = {
+            India: {
+                states: ['Tamil Nadu', 'Maharashtra', 'Delhi', 'Karnataka', 'Gujarat', 'West Bengal', 'Telangana', 'Rajasthan', 'Uttar Pradesh', 'Kerala'],
+                cities: {
+                    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli', 'Vellore'],
+                    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane'],
+                    'Delhi': ['New Delhi', 'South Delhi', 'North Delhi', 'East Delhi', 'West Delhi'],
+                    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore'],
+                    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
+                    'West Bengal': ['Kolkata', 'Howrah', 'Darjeeling', 'Siliguri'],
+                    'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad'],
+                    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota'],
+                    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Agra', 'Varanasi'],
+                    'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur']
+                }
+            },
+            USA: {
+                states: ['California', 'Texas', 'New York', 'Florida', 'Illinois', 'Washington'],
+                cities: {
+                    'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
+                    'Texas': ['Houston', 'Dallas', 'Austin', 'San Antonio'],
+                    'New York': ['New York City', 'Buffalo', 'Rochester'],
+                    'Florida': ['Miami', 'Orlando', 'Tampa'],
+                    'Illinois': ['Chicago', 'Springfield'],
+                    'Washington': ['Seattle', 'Spokane']
+                }
+            },
+            UK: {
+                states: ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+                cities: {
+                    'England': ['London', 'Manchester', 'Birmingham', 'Liverpool'],
+                    'Scotland': ['Edinburgh', 'Glasgow'],
+                    'Wales': ['Cardiff', 'Swansea'],
+                    'Northern Ireland': ['Belfast']
+                }
+            },
+            Canada: {
+                states: ['Ontario', 'Quebec', 'British Columbia', 'Alberta'],
+                cities: {
+                    'Ontario': ['Toronto', 'Ottawa', 'Mississauga'],
+                    'Quebec': ['Montreal', 'Quebec City'],
+                    'British Columbia': ['Vancouver', 'Victoria'],
+                    'Alberta': ['Calgary', 'Edmonton']
+                }
+            },
+            Australia: {
+                states: ['New South Wales', 'Victoria', 'Queensland', 'Western Australia'],
+                cities: {
+                    'New South Wales': ['Sydney', 'Newcastle'],
+                    'Victoria': ['Melbourne', 'Geelong'],
+                    'Queensland': ['Brisbane', 'Gold Coast'],
+                    'Western Australia': ['Perth']
+                }
+            },
+            Germany: {
+                states: ['Bavaria', 'Berlin', 'Hamburg', 'North Rhine-Westphalia'],
+                cities: {
+                    'Bavaria': ['Munich', 'Nuremberg'],
+                    'Berlin': ['Berlin'],
+                    'Hamburg': ['Hamburg'],
+                    'North Rhine-Westphalia': ['Cologne', 'Dusseldorf']
+                }
+            },
+            France: {
+                states: ['Île-de-France', 'Provence-Alpes-Côte d\'Azur', 'Auvergne-Rhône-Alpes'],
+                cities: {
+                    'Île-de-France': ['Paris'],
+                    'Provence-Alpes-Côte d\'Azur': ['Marseille', 'Nice'],
+                    'Auvergne-Rhône-Alpes': ['Lyon']
+                }
+            },
+            Japan: {
+                states: ['Tokyo', 'Osaka', 'Aichi', 'Hokkaido'],
+                cities: {
+                    'Tokyo': ['Tokyo', 'Yokohama'],
+                    'Osaka': ['Osaka', 'Kyoto'],
+                    'Aichi': ['Nagoya'],
+                    'Hokkaido': ['Sapporo']
+                }
+            },
+            China: {
+                states: ['Beijing', 'Shanghai', 'Guangdong', 'Sichuan'],
+                cities: {
+                    'Beijing': ['Beijing'],
+                    'Shanghai': ['Shanghai'],
+                    'Guangdong': ['Guangzhou', 'Shenzhen'],
+                    'Sichuan': ['Chengdu']
+                }
+            }
+        };
+
         // State variables
         let stations = [];
         let mechanics = [];
@@ -1069,15 +1265,44 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('stationDate').min = today;
             document.getElementById('mechanicDate').min = today;
+            
+            if (window.updateStateDropdown) {
+                window.updateStateDropdown();
+            }
         });
 
-        // Toggle mobile menu
+        // Switch between station and mechanic forms
+        window.switchRequestType = function(type) {
+            addDebugLog(`Switching to: ${type}`);
+            currentRequestType = type;
+
+            const stationForm = document.getElementById('stationRequestForm');
+            const mechanicForm = document.getElementById('mechanicRequestForm');
+            const stationBtn = document.getElementById('stationToggleBtn');
+            const mechanicBtn = document.getElementById('mechanicToggleBtn');
+
+            if (type === 'station') {
+                // Station button active
+                stationBtn.classList.add('active');
+                mechanicBtn.classList.remove('active');
+                // Show station form, hide mechanic form
+                stationForm.classList.remove('form-hidden');
+                mechanicForm.classList.add('form-hidden');
+            } else {
+                // Mechanic button active
+                mechanicBtn.classList.add('active');
+                stationBtn.classList.remove('active');
+                // Show mechanic form, hide station form
+                mechanicForm.classList.remove('form-hidden');
+                stationForm.classList.add('form-hidden');
+            }
+        };
+
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('hidden');
         }
 
-        // Toast notification
         function showToast(message, type = 'success') {
             addDebugLog(`Toast: ${message} (${type})`, type);
             const toast = document.createElement('div');
@@ -1092,7 +1317,6 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Load stations from API
         async function loadStations(retryCount = 0) {
             try {
                 addDebugLog('Fetching stations from API...');
@@ -1132,7 +1356,6 @@
             }
         }
 
-        // Load mechanics from API
         async function loadMechanics(retryCount = 0) {
             try {
                 addDebugLog('Fetching mechanics from API...');
@@ -1166,7 +1389,6 @@
             }
         }
 
-        // Load user vehicles
         async function loadUserVehicles() {
             try {
                 userVehicles = [
@@ -1180,7 +1402,6 @@
             }
         }
 
-        // Load user requests from backend
         async function loadUserRequests() {
             try {
                 addDebugLog('Fetching user requests from API');
@@ -1208,7 +1429,6 @@
             }
         }
 
-        // Update vehicle selects
         function updateVehicleSelects() {
             const stationVehicleSelect = document.getElementById('vehicleSelect');
             const mechanicVehicleSelect = document.getElementById('mechanicVehicleSelect');
@@ -1222,24 +1442,38 @@
             mechanicVehicleSelect.innerHTML = options;
         }
 
-        // Update station details when selected
         function updateStationDetails() {
             const stationId = document.getElementById('stationSelect').value;
             const detailsDiv = document.getElementById('stationDetails');
             const chargerSelect = document.getElementById('chargerType');
+            const locationHint = document.getElementById('stationLocationHint');
             
             if (!stationId) {
                 detailsDiv.classList.add('hidden');
                 chargerSelect.innerHTML = '<option value="">Select charger type</option>';
+                locationHint.classList.add('hidden');
                 return;
             }
             
             selectedStation = stations.find(s => s._id === stationId);
             addDebugLog(`Selected station: ${selectedStation.name}`);
             
+            const locationParts = [];
+            if (selectedStation.city) locationParts.push(selectedStation.city);
+            if (selectedStation.state) locationParts.push(selectedStation.state);
+            if (selectedStation.country) locationParts.push(selectedStation.country);
+            const locationString = locationParts.join(', ');
+            
+            if (locationString) {
+                locationHint.querySelector('span').textContent = locationString;
+                locationHint.classList.remove('hidden');
+            }
+            
             detailsDiv.innerHTML = `
                 <p class="font-medium">${selectedStation.name}</p>
-                <p class="text-xs text-gray-500">📍 ${selectedStation.city || ''}, ${selectedStation.state || ''}</p>
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <i class="fas fa-map-marker-alt"></i> ${locationString || 'Location not specified'}
+                </p>
                 <p class="text-xs mt-1">⭐ ${selectedStation.rating || 'New'} • ${selectedStation.amenities?.join(' • ') || 'No amenities'}</p>
             `;
             detailsDiv.classList.remove('hidden');
@@ -1255,7 +1489,6 @@
             }
         }
 
-        // Update mechanic details when selected
         function updateMechanicDetails() {
             const mechanicId = document.getElementById('mechanicSelect').value;
             const detailsDiv = document.getElementById('mechanicDetails');
@@ -1289,7 +1522,6 @@
             }
         }
 
-        // Update price when charger type changes
         function updatePrice() {
             const chargerSelect = document.getElementById('chargerType');
             const selectedOption = chargerSelect.options[chargerSelect.selectedIndex];
@@ -1303,7 +1535,6 @@
             }
         }
 
-        // Update mechanic price when service changes
         function updateMechanicPrice() {
             const serviceSelect = document.getElementById('serviceType');
             const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
@@ -1317,7 +1548,6 @@
             }
         }
 
-        // Update time slots for station
         function updateTimeSlots() {
             const date = document.getElementById('stationDate').value;
             const container = document.getElementById('stationTimeSlots');
@@ -1337,7 +1567,6 @@
             }).join('');
         }
 
-        // Update time slots for mechanic
         function updateMechanicTimeSlots() {
             const date = document.getElementById('mechanicDate').value;
             const container = document.getElementById('mechanicTimeSlots');
@@ -1357,7 +1586,6 @@
             }).join('');
         }
 
-        // Select time slot for station
         function selectTimeSlot(time) {
             selectedTimeSlot = time;
             document.querySelectorAll('#stationTimeSlots .time-slot').forEach(slot => {
@@ -1369,7 +1597,6 @@
             updatePrice();
         }
 
-        // Select time slot for mechanic
         function selectMechanicTimeSlot(time) {
             selectedMechanicTimeSlot = time;
             document.querySelectorAll('#mechanicTimeSlots .time-slot').forEach(slot => {
@@ -1379,6 +1606,121 @@
                 }
             });
             updateMechanicPrice();
+        }
+
+        function filterStationsByLocation() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const city = document.getElementById('cityFilter').value;
+            
+            let filteredStations = [...stations];
+            
+            if (country) {
+                filteredStations = filteredStations.filter(station => 
+                    station.country?.toLowerCase() === country.toLowerCase()
+                );
+            }
+            
+            if (state) {
+                filteredStations = filteredStations.filter(station => 
+                    station.state?.toLowerCase() === state.toLowerCase()
+                );
+            }
+            
+            if (city) {
+                filteredStations = filteredStations.filter(station => 
+                    station.city?.toLowerCase() === city.toLowerCase()
+                );
+            }
+            
+            const stationSelect = document.getElementById('stationSelect');
+            
+            if (filteredStations.length > 0) {
+                stationSelect.innerHTML = '<option value="">Choose a station</option>';
+                filteredStations.forEach(station => {
+                    const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
+                    stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
+                });
+                
+                document.getElementById('stationCountDisplay').textContent = filteredStations.length;
+                document.getElementById('locationStats').classList.remove('hidden');
+                
+                addDebugLog(`Found ${filteredStations.length} stations in selected location`);
+            } else {
+                stationSelect.innerHTML = '<option value="">No stations found in this location</option>';
+                document.getElementById('stationCountDisplay').textContent = '0';
+                document.getElementById('locationStats').classList.remove('hidden');
+            }
+        }
+
+        function searchByLocation() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const city = document.getElementById('cityFilter').value;
+            
+            if (!country && !state && !city) {
+                showToast('Please select at least one location filter', 'error');
+                return;
+            }
+            
+            let locationText = [];
+            if (country) locationText.push(country);
+            if (state) locationText.push(state);
+            if (city) locationText.push(city);
+            
+            addDebugLog(`Searching for stations in: ${locationText.join(', ')}`);
+            filterStationsByLocation();
+            
+            showToast(`Searching for stations in ${locationText.join(', ')}`);
+        }
+
+        function resetLocationFilters() {
+            document.getElementById('countryFilter').value = '';
+            document.getElementById('stateFilter').innerHTML = '<option value="">All States</option>';
+            document.getElementById('cityFilter').innerHTML = '<option value="">All Cities</option>';
+            document.getElementById('locationStats').classList.add('hidden');
+            
+            const stationSelect = document.getElementById('stationSelect');
+            stationSelect.innerHTML = '<option value="">Choose a station</option>';
+            stations.forEach(station => {
+                const locationInfo = [station.city, station.state, station.country].filter(Boolean).join(', ');
+                stationSelect.innerHTML += `<option value="${station._id}" data-location="${locationInfo}">${station.name} ⭐ ${station.rating || 'New'} - ${locationInfo}</option>`;
+            });
+            
+            addDebugLog('Location filters reset');
+        }
+
+        function updateStateDropdown() {
+            const country = document.getElementById('countryFilter').value;
+            const stateSelect = document.getElementById('stateFilter');
+            const citySelect = document.getElementById('cityFilter');
+            
+            if (!stateSelect) return;
+            
+            stateSelect.innerHTML = '<option value="">All States</option>';
+            if (citySelect) citySelect.innerHTML = '<option value="">All Cities</option>';
+            
+            if (country && locationData[country]) {
+                locationData[country].states.forEach(state => {
+                    stateSelect.innerHTML += `<option value="${state}">${state}</option>`;
+                });
+            }
+        }
+
+        function updateCityDropdown() {
+            const country = document.getElementById('countryFilter').value;
+            const state = document.getElementById('stateFilter').value;
+            const citySelect = document.getElementById('cityFilter');
+            
+            if (!citySelect) return;
+            
+            citySelect.innerHTML = '<option value="">All Cities</option>';
+            
+            if (country && state && locationData[country]?.cities[state]) {
+                locationData[country].cities[state].forEach(city => {
+                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                });
+            }
         }
 
         // Submit station request
@@ -1540,7 +1882,6 @@
             }
         });
 
-        // Display requests
         function displayRequests() {
             const container = document.getElementById('requestsList');
             
@@ -1596,7 +1937,6 @@
             `}).join('');
         }
 
-        // Format status for display
         function formatStatus(status) {
             const statusMap = {
                 'pending': '⏳ Pending',
@@ -1608,7 +1948,6 @@
             return statusMap[status] || status;
         }
 
-        // Show request details
         async function showRequestDetails(requestId) {
             try {
                 addDebugLog(`Fetching details for request: ${requestId}`);
@@ -1748,7 +2087,6 @@
             }
         }
 
-        // Cancel request
         async function cancelRequest(requestId) {
             if (!confirm('Are you sure you want to cancel this request?')) return;
             
@@ -1775,14 +2113,12 @@
             }
         }
 
-        // Open rating modal
         function openRatingModal(requestId, providerName) {
             currentRequestId = requestId;
             document.getElementById('providerName').textContent = providerName;
             document.getElementById('ratingModal').classList.remove('hidden');
         }
 
-        // Set rating
         function setRating(rating) {
             selectedRating = rating;
             const stars = document.querySelectorAll('#ratingModal .rating-stars i');
@@ -1796,7 +2132,6 @@
             document.getElementById('selectedRating').textContent = rating;
         }
 
-        // Submit rating
         async function submitRating() {
             if (selectedRating === 0) {
                 showToast('Please select a rating', 'error');
@@ -1833,12 +2168,10 @@
             }
         }
 
-        // Close request modal
         function closeRequestModal() {
             document.getElementById('requestModal').classList.add('hidden');
         }
 
-        // Close rating modal
         function closeRatingModal() {
             document.getElementById('ratingModal').classList.add('hidden');
             selectedRating = 0;
@@ -1848,7 +2181,6 @@
             });
         }
 
-        // Filter requests
         function filterRequests(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(tab => {
@@ -1858,7 +2190,6 @@
             displayRequests();
         }
 
-        // Update statistics
         function updateStats() {
             const total = userRequests.length;
             const pending = userRequests.filter(r => r.status === 'pending').length;
@@ -1871,7 +2202,6 @@
             document.getElementById('completedRequests').textContent = completed;
         }
 
-        // Vehicle modal functions
         function showAddVehicle() {
             document.getElementById('vehicleModal').classList.remove('hidden');
         }
@@ -1900,7 +2230,6 @@
             e.target.reset();
         });
 
-        // Update auth buttons
         function updateAuthButtons() {
             const authButtons = document.getElementById('authButtons');
             const mobileAuthButtons = document.getElementById('mobileAuthButtons');
@@ -1930,7 +2259,6 @@
             }
         }
 
-        // Logout
         window.logout = function() {
             addDebugLog('Logging out', 'info');
             localStorage.removeItem('token');
@@ -1940,26 +2268,19 @@
         };
         
         // Make functions globally available
-        window.switchToStation = switchToStation;
-        window.switchToMechanic = switchToMechanic;
-        window.filterRequests = filterRequests;
-        window.showRequestDetails = showRequestDetails;
-        window.cancelRequest = cancelRequest;
-        window.openRatingModal = openRatingModal;
-        window.setRating = setRating;
-        window.submitRating = submitRating;
-        window.closeRequestModal = closeRequestModal;
-        window.closeRatingModal = closeRatingModal;
-        window.showAddVehicle = showAddVehicle;
-        window.closeVehicleModal = closeVehicleModal;
+        window.filterStationsByLocation = filterStationsByLocation;
+        window.searchByLocation = searchByLocation;
+        window.resetLocationFilters = resetLocationFilters;
+        window.updateStateDropdown = updateStateDropdown;
+        window.updateCityDropdown = updateCityDropdown;
+        window.selectTimeSlot = selectTimeSlot;
+        window.selectMechanicTimeSlot = selectMechanicTimeSlot;
         window.updateStationDetails = updateStationDetails;
         window.updateMechanicDetails = updateMechanicDetails;
         window.updatePrice = updatePrice;
         window.updateMechanicPrice = updateMechanicPrice;
         window.updateTimeSlots = updateTimeSlots;
         window.updateMechanicTimeSlots = updateMechanicTimeSlots;
-        window.selectTimeSlot = selectTimeSlot;
-        window.selectMechanicTimeSlot = selectMechanicTimeSlot;
     </script>
     
     <script src="js/auth.js"></script>
