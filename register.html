@@ -564,7 +564,7 @@
             </div>
             
             <!-- Step 2: OTP Verification -->
-            <div id="step2" class="hidden">
+            <div id="step2" style="display:none;">
                 <div class="text-center mb-4">
                     <p class="text-sm text-gray-600">We've sent a verification code to</p>
                     <p class="font-semibold text-green-600" id="otpEmailDisplay"></p>
@@ -597,7 +597,7 @@
             </div>
 
             <!-- Step 3: Success -->
-            <div id="step3" class="hidden text-center py-8">
+            <div id="step3" style="display:none;" class="text-center py-8">
                 <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-check-circle text-4xl text-green-600"></i>
                 </div>
@@ -730,11 +730,9 @@
 
         // Back to step 1
         window.backToStep1 = function() {
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
             clearInterval(timerInterval);
-            
-            // Update step indicator
             document.getElementById('step1Indicator').classList.add('active');
             document.getElementById('step2Indicator').classList.remove('active');
         };
@@ -882,12 +880,12 @@
                 if (response.ok) {
                     registrationEmail = email;
                     
-                    // Move to OTP step
-                    document.getElementById('step1').classList.add('hidden');
-                    document.getElementById('step2').classList.remove('hidden');
+                    // Move to OTP step using style.display (Tailwind hidden class bugfix)
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'block';
                     document.getElementById('otpEmailDisplay').textContent = email;
                     
-                    // Update step indicator
+                    // Update step indicators
                     document.getElementById('step1Indicator').classList.remove('active');
                     document.getElementById('step1Indicator').classList.add('completed');
                     document.getElementById('step2Indicator').classList.add('active');
@@ -895,12 +893,22 @@
                     // Start timer
                     startTimer(600);
                     
-                    showSuccess('OTP sent successfully! Please check your email.');
-                    
                     // Clear OTP inputs
                     for (let i = 1; i <= 6; i++) {
                         document.getElementById(`otp${i}`).value = '';
                     }
+                    
+                    // If email not configured, auto-fill OTP (dev mode)
+                    if (data.devOtp) {
+                        const otpStr = data.devOtp.toString();
+                        for (let i = 0; i < 6; i++) {
+                            document.getElementById(`otp${i+1}`).value = otpStr[i] || '';
+                        }
+                        showSuccess(`⚠️ Dev Mode: OTP auto-filled → ${data.devOtp} (Email not configured on server)`);
+                    } else {
+                        showSuccess('✅ OTP sent! Please check your email: ' + email);
+                    }
+                    
                     document.getElementById('otp1').focus();
                 } else {
                     showError(data.message || 'Failed to send OTP');
@@ -956,13 +964,14 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
                     // Move to success step
-                    document.getElementById('step2').classList.add('hidden');
-                    document.getElementById('step3').classList.remove('hidden');
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('step3').style.display = 'block';
                     
                     // Update step indicator
                     document.getElementById('step2Indicator').classList.remove('active');
                     document.getElementById('step2Indicator').classList.add('completed');
                     document.getElementById('step3Indicator').classList.add('active');
+                    clearInterval(timerInterval);
                     
                     // Set success message based on role
                     const successMsg = document.getElementById('successMessage');
