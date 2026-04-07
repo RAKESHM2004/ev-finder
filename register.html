@@ -25,7 +25,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2); 
             border-radius: 1.5rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            max-width: 550px;
+            max-width: 500px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -249,23 +249,29 @@
             color: #10b981;
             font-weight: 600;
         }
-        .dev-otp-box {
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .role-badge.admin {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .role-badge.mechanic {
             background: #fef3c7;
-            border: 1px solid #fde047;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            text-align: center;
+            color: #92400e;
         }
-        .dev-otp-code {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #d97706;
-            letter-spacing: 5px;
-            font-family: monospace;
+        .role-badge.owner {
+            background: #dbeafe;
+            color: #1e40af;
         }
-        .hidden {
-            display: none;
+        .role-badge.user {
+            background: #dcfce7;
+            color: #166534;
         }
     </style>
 </head>
@@ -564,16 +570,6 @@
                     <p class="font-semibold text-green-600" id="otpEmailDisplay"></p>
                 </div>
                 
-                <!-- Dev OTP Display (for testing when email not configured) -->
-                <div id="devOtpBox" class="dev-otp-box hidden">
-                    <p class="text-sm text-yellow-700 mb-2">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Email not configured - Use this OTP for verification:
-                    </p>
-                    <div class="dev-otp-code" id="devOtpCode"></div>
-                    <p class="text-xs text-yellow-600 mt-2">Copy this code to verify your account</p>
-                </div>
-                
                 <div class="otp-container">
                     <input type="text" class="otp-input" id="otp1" maxlength="1" onkeyup="moveToNext(this, 'otp2')" onkeypress="return onlyNumberKey(event)">
                     <input type="text" class="otp-input" id="otp2" maxlength="1" onkeyup="moveToNext(this, 'otp3')" onkeypress="return onlyNumberKey(event)">
@@ -606,7 +602,7 @@
                     <i class="fas fa-check-circle text-4xl text-green-600"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
-                <p class="text-gray-600 mb-6" id="step3Message"></p>
+                <p class="text-gray-600 mb-6" id="successMessage"></p>
                 <div class="space-y-3">
                     <a href="login.html" class="btn-primary inline-block">
                         Proceed to Login
@@ -630,10 +626,10 @@
     <script>
         const API_BASE_URL = window.API_BASE_URL || 'https://ev-finder-backend-stsc.onrender.com/api';
         let timerInterval;
-        let timeLeft = 600;
+        let timeLeft = 600; // 10 minutes in seconds
         let registrationEmail = '';
-        let devOtpValue = '';
 
+        // Toast notification
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast-notification ${type === 'error' ? 'error' : ''}`;
@@ -647,6 +643,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // Show error message
         function showError(message) {
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
@@ -655,6 +652,7 @@
             }, 5000);
         }
 
+        // Show success message
         function showSuccess(message) {
             document.getElementById('successText').textContent = message;
             document.getElementById('successMessage').classList.remove('hidden');
@@ -663,16 +661,19 @@
             }, 5000);
         }
 
+        // Toggle role-specific fields
         document.getElementById('role').addEventListener('change', function(e) {
             const role = e.target.value;
             const mechanicFields = document.getElementById('mechanicFields');
             const stationOwnerFields = document.getElementById('stationOwnerFields');
             const adminNote = document.getElementById('adminNote');
             
+            // Hide all first
             mechanicFields.classList.add('hidden');
             stationOwnerFields.classList.add('hidden');
             adminNote.classList.add('hidden');
             
+            // Show relevant fields based on role
             if (role === 'mechanic') {
                 mechanicFields.classList.remove('hidden');
             } else if (role === 'station_owner') {
@@ -682,6 +683,7 @@
             }
         });
 
+        // Only allow numbers in OTP inputs
         window.onlyNumberKey = function(evt) {
             const charCode = evt.which ? evt.which : evt.keyCode;
             if (charCode > 31 && (charCode < 48 || charCode > 57)) {
@@ -690,6 +692,7 @@
             return true;
         };
 
+        // Move to next OTP input
         window.moveToNext = function(current, nextId) {
             if (current.value.length === 1) {
                 const next = document.getElementById(nextId);
@@ -699,6 +702,7 @@
             }
         };
 
+        // Start timer
         function startTimer(seconds) {
             timeLeft = seconds;
             updateTimerDisplay();
@@ -724,11 +728,13 @@
                 `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
+        // Back to step 1
         window.backToStep1 = function() {
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step1').classList.remove('hidden');
             clearInterval(timerInterval);
             
+            // Update step indicator
             document.getElementById('step1Indicator').classList.add('active');
             document.getElementById('step2Indicator').classList.remove('active');
         };
@@ -737,6 +743,7 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Get form values
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value;
@@ -745,34 +752,41 @@
             const role = document.getElementById('role').value;
             const terms = document.getElementById('terms').checked;
             
+            // Hide previous messages
             document.getElementById('errorMessage').classList.add('hidden');
             
+            // Basic validation
             if (!name || !email || !password || !confirmPassword) {
                 showError('Please fill in all required fields');
                 return;
             }
             
+            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showError('Please enter a valid email address');
                 return;
             }
             
+            // Validate passwords match
             if (password !== confirmPassword) {
                 showError('Passwords do not match');
                 return;
             }
             
+            // Validate password length
             if (password.length < 6) {
                 showError('Password must be at least 6 characters');
                 return;
             }
             
+            // Validate terms
             if (!terms) {
                 showError('You must agree to the Terms of Service');
                 return;
             }
             
+            // Role-specific validation
             if (role === 'mechanic') {
                 const shopName = document.getElementById('shopName').value;
                 const experience = document.getElementById('experience').value;
@@ -802,6 +816,7 @@
                 return;
             }
             
+            // Show loading state
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
@@ -810,6 +825,7 @@
             btnText.textContent = 'Sending OTP...';
             btnSpinner.classList.remove('hidden');
             
+            // Prepare registration data
             const registrationData = {
                 name: name.trim(),
                 email: email.trim().toLowerCase(),
@@ -818,7 +834,9 @@
                 role
             };
             
+            // Add mechanic-specific fields
             if (role === 'mechanic') {
+                // Get selected services
                 const services = [];
                 document.querySelectorAll('#mechanicFields .service-checkbox:checked').forEach(cb => {
                     services.push(cb.value);
@@ -836,6 +854,7 @@
                 };
             }
             
+            // Add station owner-specific fields
             if (role === 'station_owner') {
                 registrationData.companyName = document.getElementById('companyName').value;
                 registrationData.businessReg = document.getElementById('businessReg').value || 'Not provided';
@@ -860,30 +879,25 @@
                 
                 const data = await response.json();
                 
-                if (response.ok && data.success) {
+                if (response.ok) {
                     registrationEmail = email;
                     
-                    // Check if dev OTP is provided
-                    if (data.devOtp) {
-                        devOtpValue = data.devOtp;
-                        document.getElementById('devOtpCode').textContent = devOtpValue;
-                        document.getElementById('devOtpBox').classList.remove('hidden');
-                        showToast('OTP generated! Use the code shown below.', 'info');
-                    } else {
-                        document.getElementById('devOtpBox').classList.add('hidden');
-                        showToast('OTP sent successfully! Please check your email.');
-                    }
-                    
+                    // Move to OTP step
                     document.getElementById('step1').classList.add('hidden');
                     document.getElementById('step2').classList.remove('hidden');
                     document.getElementById('otpEmailDisplay').textContent = email;
                     
+                    // Update step indicator
                     document.getElementById('step1Indicator').classList.remove('active');
                     document.getElementById('step1Indicator').classList.add('completed');
                     document.getElementById('step2Indicator').classList.add('active');
                     
+                    // Start timer
                     startTimer(600);
                     
+                    showSuccess('OTP sent successfully! Please check your email.');
+                    
+                    // Clear OTP inputs
                     for (let i = 1; i <= 6; i++) {
                         document.getElementById(`otp${i}`).value = '';
                     }
@@ -895,6 +909,7 @@
                 console.error('Registration error:', error);
                 showError('Connection error. Server may be waking up, please try again in a moment.');
             } finally {
+                // Reset button
                 submitBtn.disabled = false;
                 btnText.textContent = 'Send OTP';
                 btnSpinner.classList.add('hidden');
@@ -912,13 +927,7 @@
                 document.getElementById('otp6').value
             ].join('');
 
-            // If dev OTP is available and user entered it
-            let otpToVerify = otp;
-            if (devOtpValue && otp === devOtpValue) {
-                otpToVerify = devOtpValue;
-            }
-
-            if (otpToVerify.length !== 6) {
+            if (otp.length !== 6) {
                 showError('Please enter complete OTP');
                 return;
             }
@@ -935,24 +944,28 @@
                     },
                     body: JSON.stringify({ 
                         email: registrationEmail, 
-                        otp: otpToVerify
+                        otp 
                     })
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
+                if (response.ok) {
+                    // Save auth data
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
+                    // Move to success step
                     document.getElementById('step2').classList.add('hidden');
                     document.getElementById('step3').classList.remove('hidden');
                     
+                    // Update step indicator
                     document.getElementById('step2Indicator').classList.remove('active');
                     document.getElementById('step2Indicator').classList.add('completed');
                     document.getElementById('step3Indicator').classList.add('active');
                     
-                    const step3Msg = document.getElementById('step3Message');
+                    // Set success message based on role
+                    const successMsg = document.getElementById('successMessage');
                     const role = data.user.role;
                     
                     let successText = '';
@@ -966,10 +979,11 @@
                         successText = 'Your account has been created successfully! You can now log in and start using EV Finder.';
                     }
                     
-                    step3Msg.innerHTML = successText;
+                    successMsg.innerHTML = successText;
                     
                     clearInterval(timerInterval);
                     
+                    // Redirect based on role after successful registration
                     setTimeout(() => {
                         if (role === 'admin') {
                             window.location.href = 'admin-dashboard.html';
@@ -980,7 +994,7 @@
                         } else {
                             window.location.href = 'user-request-dashboard.html';
                         }
-                    }, 3000);
+                    }, 2000);
                 } else {
                     showError(data.message || 'Invalid OTP');
                 }
@@ -1014,18 +1028,11 @@
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
-                    if (data.devOtp) {
-                        devOtpValue = data.devOtp;
-                        document.getElementById('devOtpCode').textContent = devOtpValue;
-                        document.getElementById('devOtpBox').classList.remove('hidden');
-                        showToast('New OTP generated!', 'info');
-                    } else {
-                        document.getElementById('devOtpBox').classList.add('hidden');
-                        showToast('New OTP sent successfully!');
-                    }
+                if (response.ok) {
+                    showSuccess('New OTP sent successfully!');
                     startTimer(600);
                     
+                    // Clear OTP inputs
                     for (let i = 1; i <= 6; i++) {
                         document.getElementById(`otp${i}`).value = '';
                     }
@@ -1041,20 +1048,81 @@
             }
         };
 
+        // Google Sign-In
         window.handleGoogleSignIn = function() {
-            showToast('Google Sign-In coming soon!', 'info');
+            showToast('Initiating Google Sign-In...', 'info');
+            
+            setTimeout(() => {
+                const mockGoogleUser = {
+                    email: 'user@gmail.com',
+                    name: 'Google User',
+                    picture: 'https://lh3.googleusercontent.com/a/default-user'
+                };
+                
+                simulateGoogleAuth(mockGoogleUser);
+            }, 1000);
         };
 
+        async function simulateGoogleAuth(userData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/google`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        credential: 'mock-google-token',
+                        user: userData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showSuccess('Google login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        const role = data.user.role;
+                        if (role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (role === 'mechanic') {
+                            if (data.user.verified) {
+                                window.location.href = 'mechanic-dashboard.html';
+                            } else {
+                                window.location.href = 'mechanic-pending.html';
+                            }
+                        } else if (role === 'station_owner') {
+                            window.location.href = 'station-owner-dashboard.html';
+                        } else {
+                            window.location.href = 'user-request-dashboard.html';
+                        }
+                    }, 1500);
+                } else {
+                    showError(data.message || 'Google login failed');
+                }
+            } catch (error) {
+                console.error('Google auth error:', error);
+                showError('Failed to authenticate with Google');
+            }
+        }
+
+        // Apple Sign-In
         window.handleAppleSignIn = function() {
-            showToast('Apple Sign-In coming soon!', 'info');
+            showToast('Apple Sign-In is coming soon!', 'info');
         };
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            // Clear OTP inputs
             for (let i = 1; i <= 6; i++) {
                 const otpInput = document.getElementById(`otp${i}`);
                 if (otpInput) otpInput.value = '';
             }
             
+            // Initially hide all role-specific fields
             document.getElementById('mechanicFields').classList.add('hidden');
             document.getElementById('stationOwnerFields').classList.add('hidden');
             document.getElementById('adminNote').classList.add('hidden');
